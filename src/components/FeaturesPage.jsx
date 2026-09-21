@@ -146,7 +146,7 @@ const FeaturesPage = ({ onBack, onLogin, onSignup, onHowItWorks, onAboutUs }) =>
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', backgroundColor: '#000000', color: '#ffffff' }}>
+    <Box sx={{ minHeight: '100vh', backgroundColor: '#F7F4EF', color: '#0B1F3A' }}>
       <TopNav
         pageTitle="Wakilibot Features"
         onHome={onBack}
@@ -778,7 +778,7 @@ const FeaturesPage = ({ onBack, onLogin, onSignup, onHowItWorks, onAboutUs }) =>
       </Box>
 
       {/* Footer */}
-      <Box sx={{ py: 4, backgroundColor: '#000000', borderTop: '1px solid #333333' }}>
+      <Box sx={{ py: 4, backgroundColor: '#F7F4EF', borderTop: '1px solid #333333' }}>
         <Container maxWidth="lg">
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>

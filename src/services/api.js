@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { store } from '../store';
 
-const API_BASE_URL = 'https://wakilibot-agent.onrender.com';
+const API_BASE_URL = process.env.REACT_APP_AGENT_URL || 'http://127.0.0.1:8001';
+const BACKEND_API_URL = process.env.REACT_APP_BACKEND_URL || 'http://127.0.0.1:8094';
 
 // Get current language from Redux store
 const getCurrentLanguageFromStore = () => {
@@ -32,9 +33,9 @@ const getCurrentLanguageFallback = () => {
   return 'en';
 };
 
-// Generate a unique user ID for this session
+// Generate a unique user ID for this session (guest-capable)
 const generateUserId = () => {
-  return `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  return `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 };
 
 // Store user ID in session storage for persistence
@@ -45,6 +46,29 @@ const getUserId = () => {
     sessionStorage.setItem('ctdru_user_id', userId);
   }
   return userId;
+};
+
+/** Create or return a guest session identity for ChatGPT-style try-without-login. */
+const ensureGuestUser = () => {
+  try {
+    const existing = JSON.parse(sessionStorage.getItem('wakilibot_guest') || 'null');
+    if (existing?.user_id && existing?.isGuest) {
+      sessionStorage.setItem('ctdru_user_id', existing.user_id);
+      return existing;
+    }
+  } catch {
+    /* ignore */
+  }
+  const guestId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  sessionStorage.setItem('ctdru_user_id', guestId);
+  const guest = {
+    user_id: guestId,
+    full_name: 'Guest',
+    isGuest: true,
+    preferred_language: 'english',
+  };
+  sessionStorage.setItem('wakilibot_guest', JSON.stringify(guest));
+  return guest;
 };
 
 // Store conversation ID in session storage for persistence
@@ -351,9 +375,9 @@ const api = {
   submitComplaint: async (complaintData) => {
     try {
       console.log('API: Submitting complaint to Backend:', complaintData);
-      console.log('API: Backend URL:', 'https://wakilibot-main.onrender.com/complaints');
+      console.log('API: Backend URL:', BACKEND_API_URL + '/complaints');
       
-      const response = await axios.post('https://wakilibot-main.onrender.com/complaints', complaintData, {
+      const response = await axios.post(BACKEND_API_URL + '/complaints', complaintData, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -374,7 +398,7 @@ const api = {
   // Get complaint status from Backend API
   getComplaintStatus: async (complaintId) => {
     try {
-      const response = await axios.get(`https://wakilibot-main.onrender.com/complaints/${complaintId}/status`);
+      const response = await axios.get(`${BACKEND_API_URL}/complaints/${complaintId}/status`);
       return response.data;
     } catch (error) {
       console.error('Error getting complaint status:', error);
@@ -385,7 +409,7 @@ const api = {
   // Submit incident to Backend API
   submitIncident: async (incidentData) => {
     try {
-      const response = await axios.post('https://wakilibot-main.onrender.com/incidents', incidentData, {
+      const response = await axios.post(BACKEND_API_URL + '/incidents', incidentData, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -400,7 +424,7 @@ const api = {
   // Get incident status from Backend API
   getIncidentStatus: async (incidentId) => {
     try {
-      const response = await axios.get(`https://wakilibot-main.onrender.com/incidents/${incidentId}/status`);
+      const response = await axios.get(`${BACKEND_API_URL}/incidents/${incidentId}/status`);
       return response.data;
     } catch (error) {
       console.error('Error getting incident status:', error);
@@ -412,7 +436,7 @@ const api = {
   registerUser: async (userData) => {
     try {
       console.log('API: Registering user:', userData);
-      const response = await axios.post('https://wakilibot-main.onrender.com/auth/register', userData, {
+      const response = await axios.post(BACKEND_API_URL + '/auth/register', userData, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -432,7 +456,7 @@ const api = {
   loginUser: async (loginData) => {
     try {
       console.log('API: Logging in user:', loginData);
-      const response = await axios.post('https://wakilibot-main.onrender.com/auth/login', loginData, {
+      const response = await axios.post(BACKEND_API_URL + '/auth/login', loginData, {
           headers: {
           'Content-Type': 'application/json',
         },
@@ -452,7 +476,7 @@ const api = {
   getUserProfile: async (userId) => {
     try {
       console.log('API: Getting user profile:', userId);
-      const response = await axios.get(`https://wakilibot-main.onrender.com/auth/user/${userId}`, {
+      const response = await axios.get(`${BACKEND_API_URL}/auth/user/${userId}`, {
         timeout: 10000, // 10 second timeout
       });
       
@@ -479,7 +503,7 @@ const api = {
         sort_order = 'desc'
       } = params;
 
-      let url = `https://wakilibot-main.onrender.com/documents?page=${page}&page_size=${page_size}&sort_by=${sort_by}&sort_order=${sort_order}`;
+      let url = `${BACKEND_API_URL}/documents?page=${page}&page_size=${page_size}&sort_by=${sort_by}&sort_order=${sort_order}`;
       
       if (category && category !== 'all') {
         url += `&category=${category}`;
@@ -508,7 +532,7 @@ const api = {
   getDocument: async (documentId) => {
     try {
       console.log('API: Fetching document:', documentId);
-      const response = await axios.get(`https://wakilibot-main.onrender.com/documents/${documentId}`, {
+      const response = await axios.get(`${BACKEND_API_URL}/documents/${documentId}`, {
         timeout: 10000,
       });
       
@@ -532,7 +556,7 @@ const api = {
       formData.append('user_id', getAppropriateUserId());
 
       console.log('API: Uploading document:', documentData.title);
-      const response = await axios.post('https://wakilibot-main.onrender.com/documents/upload', formData, {
+      const response = await axios.post(BACKEND_API_URL + '/documents/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -553,7 +577,7 @@ const api = {
   updateDocument: async (documentId, updateData) => {
     try {
       console.log('API: Updating document:', documentId, updateData);
-      const response = await axios.put(`https://wakilibot-main.onrender.com/documents/${documentId}`, updateData, {
+      const response = await axios.put(`${BACKEND_API_URL}/documents/${documentId}`, updateData, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -572,7 +596,7 @@ const api = {
   deleteDocument: async (documentId) => {
     try {
       console.log('API: Deleting document:', documentId);
-      const response = await axios.delete(`https://wakilibot-main.onrender.com/documents/${documentId}`, {
+      const response = await axios.delete(`${BACKEND_API_URL}/documents/${documentId}`, {
         timeout: 10000,
       });
       
@@ -588,7 +612,7 @@ const api = {
   downloadDocument: async (documentId) => {
     try {
       console.log('API: Downloading document:', documentId);
-      const response = await axios.get(`https://wakilibot-main.onrender.com/documents/download/${documentId}`, {
+      const response = await axios.get(`${BACKEND_API_URL}/documents/download/${documentId}`, {
         responseType: 'blob',
         timeout: 30000, // 30 seconds for file download
       });
@@ -605,7 +629,7 @@ const api = {
   getDocumentStats: async () => {
     try {
       console.log('API: Fetching document statistics');
-      const response = await axios.get('https://wakilibot-main.onrender.com/documents/stats/overview', {
+      const response = await axios.get(BACKEND_API_URL + '/documents/stats/overview', {
         timeout: 10000,
       });
       
@@ -621,7 +645,7 @@ const api = {
   resetPassword: async (email, newPassword, confirmPassword) => {
     try {
       console.log('API: Resetting password for:', email);
-      const response = await axios.post('https://wakilibot-main.onrender.com/auth/reset-password', {
+      const response = await axios.post(BACKEND_API_URL + '/auth/reset-password', {
         email: email,
         new_password: newPassword,
         confirm_password: confirmPassword
@@ -643,7 +667,7 @@ const api = {
   changePassword: async (email, currentPassword, newPassword) => {
     try {
       console.log('API: Changing password for:', email);
-      const response = await axios.post('https://wakilibot-main.onrender.com/auth/change-password', {
+      const response = await axios.post(BACKEND_API_URL + '/auth/change-password', {
         email: email,
         current_password: currentPassword,
         new_password: newPassword,
@@ -667,6 +691,13 @@ const api = {
   utils: {
     // Get current user ID (authenticated user from localStorage or session user)
     getCurrentUserId: () => getAppropriateUserId(),
+
+    // Guest session (no account required)
+    ensureGuestUser: () => ensureGuestUser(),
+    clearGuestUser: () => {
+      sessionStorage.removeItem('wakilibot_guest');
+    },
+    isGuestUser: (user) => Boolean(user?.isGuest),
     
     // Get session user ID (legacy function)
     getSessionUserId: () => getUserId(),

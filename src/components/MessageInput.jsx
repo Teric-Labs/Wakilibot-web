@@ -5,18 +5,16 @@ import {
   IconButton, 
   Box, 
   CircularProgress,
-  Chip,
   Fade,
   Typography,
   Button,
   Stack
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
-import AssignmentIcon from '@mui/icons-material/Assignment';
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import VoiceRecorder from './VoiceRecorder';
 import api from '../services/api';
 import { useLanguage } from '../hooks/useLanguage';
+import { tokens } from '../styles/theme';
 
 const MessageInput = ({ 
   onMessageReceived, 
@@ -140,12 +138,11 @@ const MessageInput = ({
     }
   };
 
-  // Quick action buttons - Dark theme
   const quickActions = [
-    { text: "Submit complaint", icon: <AssignmentIcon /> },
-    { text: "Check status", icon: <AutoAwesomeIcon /> },
-    { text: "Report fraud", icon: <AssignmentIcon /> },
-    { text: "Consumer rights", icon: <AutoAwesomeIcon /> }
+    'Submit complaint',
+    'Report fraud',
+    'Check complaint status',
+    'Wrong MoMo transfer',
   ];
 
   const handleQuickAction = (actionText) => {
@@ -155,105 +152,74 @@ const MessageInput = ({
     }
   };
 
+  const canSend = message.trim() !== '' && !isLoading && !isStreaming;
+
   return (
     <Box sx={{ position: 'relative' }}>
-      {/* Quick Actions - Dark Theme */}
       <Fade in={!isLoading && !isStreaming && message === ''}>
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="caption" color="#cccccc" sx={{ mb: 1, display: 'block', fontWeight: 500 }}>
-            Quick actions:
-          </Typography>
-          <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
-            {quickActions.map((action, index) => (
-              <Button
-                key={index}
-                size="small"
-                variant="outlined"
-                startIcon={action.icon}
-                onClick={() => handleQuickAction(action.text)}
-                sx={{
-                  borderRadius: 4,
-                  textTransform: 'none',
-                  fontSize: '13px',
-                  fontWeight: 500,
-                  px: 2,
-                  py: 0.5,
-                  borderColor: '#444444',
-                  color: '#cccccc',
-                  backgroundColor: '#111111',
-                  '&:hover': {
-                    backgroundColor: '#222222',
-                    borderColor: '#666666',
-                    color: '#ffffff',
-                    transform: 'translateY(-1px)',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
-                  },
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                {action.text}
-              </Button>
-            ))}
-          </Stack>
-        </Box>
+        <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1, mb: 1.5 }}>
+          {quickActions.map((text) => (
+            <Button
+              key={text}
+              size="small"
+              onClick={() => handleQuickAction(text)}
+              sx={{
+                borderRadius: 5,
+                textTransform: 'none',
+                fontSize: '0.8rem',
+                fontWeight: 400,
+                px: 1.5,
+                py: 0.4,
+                border: '1px solid rgba(11,31,58,0.14)',
+                color: tokens.navy,
+                backgroundColor: '#FFFFFF',
+                '&:hover': {
+                  backgroundColor: tokens.paper,
+                  borderColor: tokens.navyMid,
+                },
+              }}
+            >
+              {text}
+            </Button>
+          ))}
+        </Stack>
       </Fade>
 
-      {/* Dark Theme Input Container - Smaller */}
       <Paper
         component="form"
         onSubmit={handleSubmit}
         elevation={0}
         sx={{
-          p: '8px 12px',
+          p: '10px 12px',
           display: 'flex',
-          alignItems: 'center',
-          borderRadius: 4,
-          backgroundColor: '#111111',
-          border: '1px solid #333333',
-          boxShadow: '0 1px 2px rgba(0,0,0,0.3)',
-          transition: 'all 0.2s ease',
-          '&:hover': {
-            borderColor: '#444444',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.4)',
-          },
+          alignItems: 'flex-end',
+          borderRadius: 3.5,
+          backgroundColor: '#FFFFFF',
+          border: '1px solid rgba(11,31,58,0.14)',
+          boxShadow: '0 2px 12px rgba(11,31,58,0.04)',
           '&:focus-within': {
-            borderColor: '#ffffff',
-            boxShadow: '0 2px 8px rgba(255,255,255,0.1)',
-          }
+            borderColor: tokens.navyMid,
+          },
         }}
       >
-        {/* Voice Recorder */}
-        <VoiceRecorder 
-          onMessageReceived={onMessageReceived} 
+        <VoiceRecorder
+          onMessageReceived={onMessageReceived}
           setIsLoading={setIsLoading}
         />
-        
-        {/* Dark Theme Text Input */}
+
         <InputBase
-          sx={{ 
-            ml: 2, 
+          sx={{
+            ml: 1.5,
             flex: 1,
-            fontSize: '15px',
+            fontSize: '0.95rem',
             fontWeight: 400,
-            color: '#ffffff',
-            '& input': {
-              '&::placeholder': {
-                opacity: 0.6,
-                fontWeight: 400,
-                fontSize: '15px',
-                color: '#888888'
-              }
+            color: tokens.ink,
+            '& textarea::placeholder, & input::placeholder': {
+              opacity: 0.55,
+              color: tokens.muted,
             },
-            '& textarea': {
-              '&::placeholder': {
-                opacity: 0.6,
-                fontWeight: 400,
-                fontSize: '15px',
-                color: '#888888'
-              }
-            }
           }}
-          placeholder="Message Wakilibot..."
+          placeholder="Message Wakilibot…"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={(e) => {
@@ -267,81 +233,46 @@ const MessageInput = ({
           multiline
           maxRows={4}
         />
-        
-        {/* Dark Theme Send Button - Smaller */}
-        <IconButton 
-          type="submit" 
-          disabled={message.trim() === '' || isLoading || isStreaming}
-          sx={{ 
+
+        <IconButton
+          type="submit"
+          aria-label="Send message"
+          disabled={!canSend}
+          sx={{
             ml: 1,
-            p: 1,
-            backgroundColor: message.trim() !== '' && !isLoading && !isStreaming
-              ? '#ffffff'
-              : '#333333',
-            color: message.trim() !== '' && !isLoading && !isStreaming ? '#000000' : '#888888',
-            borderRadius: 2,
-            transition: 'all 0.2s ease',
+            width: 36,
+            height: 36,
+            backgroundColor: canSend ? tokens.navy : 'rgba(11,31,58,0.08)',
+            color: canSend ? '#FFFFFF' : 'rgba(11,31,58,0.35)',
+            borderRadius: '50%',
             '&:hover': {
-              backgroundColor: message.trim() !== '' && !isLoading && !isStreaming
-                ? '#cccccc'
-                : '#444444',
-              transform: 'scale(1.05)',
+              backgroundColor: canSend ? tokens.navyMid : 'rgba(11,31,58,0.12)',
             },
             '&:disabled': {
-              backgroundColor: '#333333',
-              color: '#888888',
-              transform: 'none'
-            }
+              backgroundColor: 'rgba(11,31,58,0.08)',
+              color: 'rgba(11,31,58,0.35)',
+            },
           }}
         >
           {isLoading || isStreaming ? (
-            <CircularProgress size={20} color="inherit" />
+            <CircularProgress size={18} color="inherit" />
           ) : (
             <SendIcon sx={{ fontSize: 18 }} />
           )}
         </IconButton>
       </Paper>
 
-      {/* Dark Theme Status Indicators */}
-      <Fade in={isLoading || isStreaming}>
-        <Box sx={{ 
-          position: 'absolute', 
-          top: -40, 
-          left: 0, 
-          right: 0, 
-          display: 'flex', 
-          justifyContent: 'center',
-          gap: 1
-        }}>
-          <Chip
-            icon={<AutoAwesomeIcon />}
-            label={isStreaming ? "Wakilibot is typing..." : "Processing..."}
-            size="small"
-            variant="outlined"
-            sx={{ 
-              backgroundColor: '#111111',
-              borderColor: '#333333',
-              color: '#cccccc',
-              fontWeight: 500,
-              fontSize: '12px',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.3)'
-            }}
-          />
-        </Box>
-      </Fade>
-
-      {/* Dark Theme Footer */}
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center',
-        mt: 2,
-        opacity: 0.5
-      }}>
-        <Typography variant="caption" color="#888888" sx={{ fontWeight: 400, fontSize: '11px' }}>
-          Wakilibot can make mistakes. Consider checking important information.
-        </Typography>
-      </Box>
+      <Typography
+        sx={{
+          mt: 1.5,
+          textAlign: 'center',
+          color: tokens.muted,
+          fontSize: '0.72rem',
+          fontWeight: 400,
+        }}
+      >
+        Wakilibot can make mistakes. Check important information when needed.
+      </Typography>
     </Box>
   );
 };

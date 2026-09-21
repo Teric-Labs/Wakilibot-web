@@ -45,8 +45,9 @@ import {
   Close as CloseIcon
 } from '@mui/icons-material';
 import api from '../services/api';
+import DraftAssistant from './DraftAssistant';
 
-const ComplaintForm = ({ onBack, onSuccess }) => {
+const ComplaintForm = ({ onBack, onSuccess, initialComplaintType = '', mode = 'complaint' }) => {
   const [activeStep, setActiveStep] = useState(0);
   const [formData, setFormData] = useState({
     // Personal Information
@@ -56,10 +57,10 @@ const ComplaintForm = ({ onBack, onSuccess }) => {
     address: '',
     
     // Complaint Details
-    complaintType: '',
+    complaintType: initialComplaintType || '',
     companyName: '',
     transactionId: '',
-    issueType: '',
+    issueType: mode === 'fraud' ? 'fraud' : '',
     description: '',
     amount: '',
     dateOfIncident: '',
@@ -67,7 +68,7 @@ const ComplaintForm = ({ onBack, onSuccess }) => {
     // Additional Information
     supportingDocuments: [],
     preferredContactMethod: 'email',
-    urgency: 'medium',
+    urgency: mode === 'fraud' ? 'high' : 'medium',
     agreeToTerms: false
   });
   
@@ -290,7 +291,7 @@ const ComplaintForm = ({ onBack, onSuccess }) => {
 
   const renderPersonalInfoStep = () => (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Alert severity="info" sx={{ backgroundColor: '#1a1a1a', color: '#ffffff', border: '1px solid #333333' }}>
+      <Alert severity="info" sx={{ backgroundColor: '#F7F4EF', color: '#0B1F3A', border: '1px solid rgba(11,31,58,0.12)' }}>
         <Typography variant="body2">
           Your personal information is secure and will only be used to process your complaint and contact you regarding updates.
         </Typography>
@@ -308,14 +309,14 @@ const ComplaintForm = ({ onBack, onSuccess }) => {
             required
             sx={{
               '& .MuiOutlinedInput-root': {
-                backgroundColor: '#111111',
-                color: '#ffffff',
-                '& fieldset': { borderColor: '#444444' },
-                '&:hover fieldset': { borderColor: '#666666' },
+                backgroundColor: '#FFFFFF',
+                color: '#0B1F3A',
+                '& fieldset': { borderColor: 'rgba(11,31,58,0.28)' },
+                '&:hover fieldset': { borderColor: 'rgba(11,31,58,0.35)' },
                 '&.Mui-focused fieldset': { borderColor: '#ffffff' }
               },
-              '& .MuiInputLabel-root': { color: '#888888' },
-              '& .MuiFormHelperText-root': { color: '#ff6b6b' }
+              '& .MuiInputLabel-root': { color: '#5C6B7A' },
+              '& .MuiFormHelperText-root': { color: '#9B2C2C' }
             }}
           />
         </Grid>
@@ -332,14 +333,14 @@ const ComplaintForm = ({ onBack, onSuccess }) => {
             required
             sx={{
               '& .MuiOutlinedInput-root': {
-                backgroundColor: '#111111',
-                color: '#ffffff',
-                '& fieldset': { borderColor: '#444444' },
-                '&:hover fieldset': { borderColor: '#666666' },
+                backgroundColor: '#FFFFFF',
+                color: '#0B1F3A',
+                '& fieldset': { borderColor: 'rgba(11,31,58,0.28)' },
+                '&:hover fieldset': { borderColor: 'rgba(11,31,58,0.35)' },
                 '&.Mui-focused fieldset': { borderColor: '#ffffff' }
               },
-              '& .MuiInputLabel-root': { color: '#888888' },
-              '& .MuiFormHelperText-root': { color: '#ff6b6b' }
+              '& .MuiInputLabel-root': { color: '#5C6B7A' },
+              '& .MuiFormHelperText-root': { color: '#9B2C2C' }
             }}
           />
         </Grid>
@@ -355,13 +356,13 @@ const ComplaintForm = ({ onBack, onSuccess }) => {
             required
             sx={{
               '& .MuiOutlinedInput-root': {
-                backgroundColor: '#111111',
-                color: '#ffffff',
-                '& fieldset': { borderColor: '#444444' },
-                '&:hover fieldset': { borderColor: '#666666' },
+                backgroundColor: '#FFFFFF',
+                color: '#0B1F3A',
+                '& fieldset': { borderColor: 'rgba(11,31,58,0.28)' },
+                '&:hover fieldset': { borderColor: 'rgba(11,31,58,0.35)' },
                 '&.Mui-focused fieldset': { borderColor: '#ffffff' }
               },
-              '& .MuiInputLabel-root': { color: '#888888' },
+              '& .MuiInputLabel-root': { color: '#5C6B7A' },
               '& .MuiFormHelperText-root': { color: errors.phone ? '#ff6b6b' : '#888888' }
             }}
           />
@@ -377,13 +378,13 @@ const ComplaintForm = ({ onBack, onSuccess }) => {
             rows={2}
             sx={{
               '& .MuiOutlinedInput-root': {
-                backgroundColor: '#111111',
-                color: '#ffffff',
-                '& fieldset': { borderColor: '#444444' },
-                '&:hover fieldset': { borderColor: '#666666' },
+                backgroundColor: '#FFFFFF',
+                color: '#0B1F3A',
+                '& fieldset': { borderColor: 'rgba(11,31,58,0.28)' },
+                '&:hover fieldset': { borderColor: 'rgba(11,31,58,0.35)' },
                 '&.Mui-focused fieldset': { borderColor: '#ffffff' }
               },
-              '& .MuiInputLabel-root': { color: '#888888' }
+              '& .MuiInputLabel-root': { color: '#5C6B7A' }
             }}
           />
         </Grid>
@@ -393,7 +394,7 @@ const ComplaintForm = ({ onBack, onSuccess }) => {
 
   const renderComplaintDetailsStep = () => (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Alert severity="warning" sx={{ backgroundColor: '#1a1a1a', color: '#ffffff', border: '1px solid #333333' }}>
+      <Alert severity="warning" sx={{ backgroundColor: '#F7F4EF', color: '#0B1F3A', border: '1px solid rgba(11,31,58,0.12)' }}>
         <Typography variant="body2">
           Please provide accurate information. False information may delay or invalidate your complaint.
         </Typography>
@@ -402,15 +403,15 @@ const ComplaintForm = ({ onBack, onSuccess }) => {
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <FormControl fullWidth error={!!errors.complaintType} required>
-            <InputLabel sx={{ color: '#888888' }}>Complaint Type</InputLabel>
+            <InputLabel sx={{ color: '#5C6B7A' }}>Complaint Type</InputLabel>
             <Select
               value={formData.complaintType}
               onChange={(e) => handleInputChange('complaintType', e.target.value)}
               sx={{
-                backgroundColor: '#111111',
-                color: '#ffffff',
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#444444' },
-                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#666666' },
+                backgroundColor: '#FFFFFF',
+                color: '#0B1F3A',
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(11,31,58,0.28)' },
+                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(11,31,58,0.35)' },
                 '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#ffffff' }
               }}
             >
@@ -419,10 +420,10 @@ const ComplaintForm = ({ onBack, onSuccess }) => {
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     {type.icon}
                     <Box>
-                      <Typography variant="body1" sx={{ color: '#ffffff' }}>
+                      <Typography variant="body1" sx={{ color: '#0B1F3A' }}>
                         {type.label}
                       </Typography>
-                      <Typography variant="caption" sx={{ color: '#888888' }}>
+                      <Typography variant="caption" sx={{ color: '#5C6B7A' }}>
                         {type.description}
                       </Typography>
                     </Box>
@@ -432,7 +433,7 @@ const ComplaintForm = ({ onBack, onSuccess }) => {
             </Select>
           </FormControl>
           {errors.complaintType && (
-            <Typography variant="caption" sx={{ color: '#ff6b6b', mt: 1 }}>
+            <Typography variant="caption" sx={{ color: '#9B2C2C', mt: 1 }}>
               {errors.complaintType}
             </Typography>
           )}
@@ -449,14 +450,14 @@ const ComplaintForm = ({ onBack, onSuccess }) => {
             required
             sx={{
               '& .MuiOutlinedInput-root': {
-                backgroundColor: '#111111',
-                color: '#ffffff',
-                '& fieldset': { borderColor: '#444444' },
-                '&:hover fieldset': { borderColor: '#666666' },
+                backgroundColor: '#FFFFFF',
+                color: '#0B1F3A',
+                '& fieldset': { borderColor: 'rgba(11,31,58,0.28)' },
+                '&:hover fieldset': { borderColor: 'rgba(11,31,58,0.35)' },
                 '&.Mui-focused fieldset': { borderColor: '#ffffff' }
               },
-              '& .MuiInputLabel-root': { color: '#888888' },
-              '& .MuiFormHelperText-root': { color: '#ff6b6b' }
+              '& .MuiInputLabel-root': { color: '#5C6B7A' },
+              '& .MuiFormHelperText-root': { color: '#9B2C2C' }
             }}
           />
         </Grid>
@@ -469,28 +470,28 @@ const ComplaintForm = ({ onBack, onSuccess }) => {
             fullWidth
             sx={{
               '& .MuiOutlinedInput-root': {
-                backgroundColor: '#111111',
-                color: '#ffffff',
-                '& fieldset': { borderColor: '#444444' },
-                '&:hover fieldset': { borderColor: '#666666' },
+                backgroundColor: '#FFFFFF',
+                color: '#0B1F3A',
+                '& fieldset': { borderColor: 'rgba(11,31,58,0.28)' },
+                '&:hover fieldset': { borderColor: 'rgba(11,31,58,0.35)' },
                 '&.Mui-focused fieldset': { borderColor: '#ffffff' }
               },
-              '& .MuiInputLabel-root': { color: '#888888' }
+              '& .MuiInputLabel-root': { color: '#5C6B7A' }
             }}
           />
         </Grid>
         
         <Grid item xs={12}>
           <FormControl fullWidth error={!!errors.issueType} required>
-            <InputLabel sx={{ color: '#888888' }}>Issue Type</InputLabel>
+            <InputLabel sx={{ color: '#5C6B7A' }}>Issue Type</InputLabel>
             <Select
               value={formData.issueType}
               onChange={(e) => handleInputChange('issueType', e.target.value)}
               sx={{
-                backgroundColor: '#111111',
-                color: '#ffffff',
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#444444' },
-                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#666666' },
+                backgroundColor: '#FFFFFF',
+                color: '#0B1F3A',
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(11,31,58,0.28)' },
+                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(11,31,58,0.35)' },
                 '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#ffffff' }
               }}
             >
@@ -503,11 +504,11 @@ const ComplaintForm = ({ onBack, onSuccess }) => {
                       sx={{
                         backgroundColor: issue.severity === 'high' ? '#f44336' : 
                                         issue.severity === 'medium' ? '#ff9800' : '#4caf50',
-                        color: '#ffffff',
+                        color: '#0B1F3A',
                         fontSize: '10px'
                       }}
                     />
-                    <Typography variant="body1" sx={{ color: '#ffffff' }}>
+                    <Typography variant="body1" sx={{ color: '#0B1F3A' }}>
                       {issue.label}
                     </Typography>
                   </Box>
@@ -516,7 +517,7 @@ const ComplaintForm = ({ onBack, onSuccess }) => {
             </Select>
           </FormControl>
           {errors.issueType && (
-            <Typography variant="caption" sx={{ color: '#ff6b6b', mt: 1 }}>
+            <Typography variant="caption" sx={{ color: '#9B2C2C', mt: 1 }}>
               {errors.issueType}
             </Typography>
           )}
@@ -531,13 +532,13 @@ const ComplaintForm = ({ onBack, onSuccess }) => {
             fullWidth
             sx={{
               '& .MuiOutlinedInput-root': {
-                backgroundColor: '#111111',
-                color: '#ffffff',
-                '& fieldset': { borderColor: '#444444' },
-                '&:hover fieldset': { borderColor: '#666666' },
+                backgroundColor: '#FFFFFF',
+                color: '#0B1F3A',
+                '& fieldset': { borderColor: 'rgba(11,31,58,0.28)' },
+                '&:hover fieldset': { borderColor: 'rgba(11,31,58,0.35)' },
                 '&.Mui-focused fieldset': { borderColor: '#ffffff' }
               },
-              '& .MuiInputLabel-root': { color: '#888888' }
+              '& .MuiInputLabel-root': { color: '#5C6B7A' }
             }}
           />
         </Grid>
@@ -552,13 +553,13 @@ const ComplaintForm = ({ onBack, onSuccess }) => {
             fullWidth
             sx={{
               '& .MuiOutlinedInput-root': {
-                backgroundColor: '#111111',
-                color: '#ffffff',
-                '& fieldset': { borderColor: '#444444' },
-                '&:hover fieldset': { borderColor: '#666666' },
+                backgroundColor: '#FFFFFF',
+                color: '#0B1F3A',
+                '& fieldset': { borderColor: 'rgba(11,31,58,0.28)' },
+                '&:hover fieldset': { borderColor: 'rgba(11,31,58,0.35)' },
                 '&.Mui-focused fieldset': { borderColor: '#ffffff' }
               },
-              '& .MuiInputLabel-root': { color: '#888888' }
+              '& .MuiInputLabel-root': { color: '#5C6B7A' }
             }}
           />
         </Grid>
@@ -576,13 +577,13 @@ const ComplaintForm = ({ onBack, onSuccess }) => {
             required
             sx={{
               '& .MuiOutlinedInput-root': {
-                backgroundColor: '#111111',
-                color: '#ffffff',
-                '& fieldset': { borderColor: '#444444' },
-                '&:hover fieldset': { borderColor: '#666666' },
+                backgroundColor: '#FFFFFF',
+                color: '#0B1F3A',
+                '& fieldset': { borderColor: 'rgba(11,31,58,0.28)' },
+                '&:hover fieldset': { borderColor: 'rgba(11,31,58,0.35)' },
                 '&.Mui-focused fieldset': { borderColor: '#ffffff' }
               },
-              '& .MuiInputLabel-root': { color: '#888888' },
+              '& .MuiInputLabel-root': { color: '#5C6B7A' },
               '& .MuiFormHelperText-root': { color: errors.description ? '#ff6b6b' : '#888888' }
             }}
           />
@@ -596,15 +597,15 @@ const ComplaintForm = ({ onBack, onSuccess }) => {
       <Grid container spacing={2}>
         <Grid item xs={12} md={6}>
           <FormControl fullWidth>
-            <InputLabel sx={{ color: '#888888' }}>Preferred Contact Method</InputLabel>
+            <InputLabel sx={{ color: '#5C6B7A' }}>Preferred Contact Method</InputLabel>
             <Select
               value={formData.preferredContactMethod}
               onChange={(e) => handleInputChange('preferredContactMethod', e.target.value)}
               sx={{
-                backgroundColor: '#111111',
-                color: '#ffffff',
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#444444' },
-                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#666666' },
+                backgroundColor: '#FFFFFF',
+                color: '#0B1F3A',
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(11,31,58,0.28)' },
+                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(11,31,58,0.35)' },
                 '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#ffffff' }
               }}
             >
@@ -617,15 +618,15 @@ const ComplaintForm = ({ onBack, onSuccess }) => {
         
         <Grid item xs={12} md={6}>
           <FormControl fullWidth>
-            <InputLabel sx={{ color: '#888888' }}>Urgency Level</InputLabel>
+            <InputLabel sx={{ color: '#5C6B7A' }}>Urgency Level</InputLabel>
             <Select
               value={formData.urgency}
               onChange={(e) => handleInputChange('urgency', e.target.value)}
               sx={{
-                backgroundColor: '#111111',
-                color: '#ffffff',
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#444444' },
-                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#666666' },
+                backgroundColor: '#FFFFFF',
+                color: '#0B1F3A',
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(11,31,58,0.28)' },
+                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(11,31,58,0.35)' },
                 '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#ffffff' }
               }}
             >
@@ -637,11 +638,11 @@ const ComplaintForm = ({ onBack, onSuccess }) => {
                       size="small"
                       sx={{
                         backgroundColor: level.color,
-                        color: '#ffffff',
+                        color: '#0B1F3A',
                         fontSize: '10px'
                       }}
                     />
-                    <Typography variant="body2" sx={{ color: '#ffffff' }}>
+                    <Typography variant="body2" sx={{ color: '#0B1F3A' }}>
                       {level.description}
                     </Typography>
                   </Box>
@@ -652,21 +653,21 @@ const ComplaintForm = ({ onBack, onSuccess }) => {
         </Grid>
         
         <Grid item xs={12}>
-          <Card sx={{ backgroundColor: '#111111', border: '1px solid #333333' }}>
+          <Card sx={{ backgroundColor: '#FFFFFF', border: '1px solid rgba(11,31,58,0.12)' }}>
             <CardContent>
-              <Typography variant="h6" sx={{ color: '#ffffff', mb: 2 }}>
+              <Typography variant="h6" sx={{ color: '#0B1F3A', mb: 2 }}>
                 Supporting Documents (Optional)
               </Typography>
-              <Typography variant="body2" sx={{ color: '#888888', mb: 2 }}>
+              <Typography variant="body2" sx={{ color: '#5C6B7A', mb: 2 }}>
                 Upload receipts, screenshots, or other evidence to support your complaint.
               </Typography>
               <Button
                 variant="outlined"
                 startIcon={<AttachIcon />}
                 sx={{
-                  borderColor: '#444444',
-                  color: '#cccccc',
-                  '&:hover': { borderColor: '#666666', backgroundColor: '#333333' }
+                  borderColor: 'rgba(11,31,58,0.28)',
+                  color: '#5C6B7A',
+                  '&:hover': { borderColor: 'rgba(11,31,58,0.35)', backgroundColor: 'rgba(11,31,58,0.06)' }
                 }}
               >
                 Attach Files
@@ -682,19 +683,19 @@ const ComplaintForm = ({ onBack, onSuccess }) => {
                 checked={formData.agreeToTerms}
                 onChange={(e) => handleInputChange('agreeToTerms', e.target.checked)}
                 sx={{
-                  color: '#cccccc',
-                  '&.Mui-checked': { color: '#ffffff' }
+                  color: '#5C6B7A',
+                  '&.Mui-checked': { color: '#0B1F3A' }
                 }}
               />
             }
             label={
-              <Typography variant="body2" sx={{ color: '#cccccc' }}>
+              <Typography variant="body2" sx={{ color: '#5C6B7A' }}>
                 I confirm that the information provided is accurate and I agree to CTDRU's terms of service and privacy policy.
               </Typography>
             }
           />
           {errors.agreeToTerms && (
-            <Typography variant="caption" sx={{ color: '#ff6b6b', mt: 1 }}>
+            <Typography variant="caption" sx={{ color: '#9B2C2C', mt: 1 }}>
               {errors.agreeToTerms}
             </Typography>
           )}
@@ -705,81 +706,81 @@ const ComplaintForm = ({ onBack, onSuccess }) => {
 
   const renderReviewStep = () => (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Alert severity="info" sx={{ backgroundColor: '#1a1a1a', color: '#ffffff', border: '1px solid #333333' }}>
+      <Alert severity="info" sx={{ backgroundColor: '#F7F4EF', color: '#0B1F3A', border: '1px solid rgba(11,31,58,0.12)' }}>
         <Typography variant="body2">
           Please review your complaint details carefully before submitting. You will receive a confirmation email with your complaint reference number.
         </Typography>
       </Alert>
       
-      <Card sx={{ backgroundColor: '#111111', border: '1px solid #333333' }}>
+      <Card sx={{ backgroundColor: '#FFFFFF', border: '1px solid rgba(11,31,58,0.12)' }}>
         <CardContent>
-          <Typography variant="h6" sx={{ color: '#ffffff', mb: 2 }}>
+          <Typography variant="h6" sx={{ color: '#0B1F3A', mb: 2 }}>
             Personal Information
           </Typography>
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
-              <Typography variant="body2" sx={{ color: '#888888' }}>Name:</Typography>
-              <Typography variant="body1" sx={{ color: '#ffffff' }}>{formData.fullName}</Typography>
+              <Typography variant="body2" sx={{ color: '#5C6B7A' }}>Name:</Typography>
+              <Typography variant="body1" sx={{ color: '#0B1F3A' }}>{formData.fullName}</Typography>
             </Grid>
             <Grid item xs={12} md={6}>
-              <Typography variant="body2" sx={{ color: '#888888' }}>Email:</Typography>
-              <Typography variant="body1" sx={{ color: '#ffffff' }}>{formData.email}</Typography>
+              <Typography variant="body2" sx={{ color: '#5C6B7A' }}>Email:</Typography>
+              <Typography variant="body1" sx={{ color: '#0B1F3A' }}>{formData.email}</Typography>
             </Grid>
             <Grid item xs={12} md={6}>
-              <Typography variant="body2" sx={{ color: '#888888' }}>Phone:</Typography>
-              <Typography variant="body1" sx={{ color: '#ffffff' }}>{formData.phone}</Typography>
+              <Typography variant="body2" sx={{ color: '#5C6B7A' }}>Phone:</Typography>
+              <Typography variant="body1" sx={{ color: '#0B1F3A' }}>{formData.phone}</Typography>
             </Grid>
             <Grid item xs={12} md={6}>
-              <Typography variant="body2" sx={{ color: '#888888' }}>Contact Method:</Typography>
-              <Typography variant="body1" sx={{ color: '#ffffff' }}>{formData.preferredContactMethod}</Typography>
+              <Typography variant="body2" sx={{ color: '#5C6B7A' }}>Contact Method:</Typography>
+              <Typography variant="body1" sx={{ color: '#0B1F3A' }}>{formData.preferredContactMethod}</Typography>
             </Grid>
           </Grid>
         </CardContent>
       </Card>
       
-      <Card sx={{ backgroundColor: '#111111', border: '1px solid #333333' }}>
+      <Card sx={{ backgroundColor: '#FFFFFF', border: '1px solid rgba(11,31,58,0.12)' }}>
         <CardContent>
-          <Typography variant="h6" sx={{ color: '#ffffff', mb: 2 }}>
+          <Typography variant="h6" sx={{ color: '#0B1F3A', mb: 2 }}>
             Complaint Details
           </Typography>
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
-              <Typography variant="body2" sx={{ color: '#888888' }}>Type:</Typography>
-              <Typography variant="body1" sx={{ color: '#ffffff' }}>
+              <Typography variant="body2" sx={{ color: '#5C6B7A' }}>Type:</Typography>
+              <Typography variant="body1" sx={{ color: '#0B1F3A' }}>
                 {complaintTypes.find(t => t.value === formData.complaintType)?.label}
               </Typography>
             </Grid>
             <Grid item xs={12} md={6}>
-              <Typography variant="body2" sx={{ color: '#888888' }}>Company:</Typography>
-              <Typography variant="body1" sx={{ color: '#ffffff' }}>{formData.companyName}</Typography>
+              <Typography variant="body2" sx={{ color: '#5C6B7A' }}>Company:</Typography>
+              <Typography variant="body1" sx={{ color: '#0B1F3A' }}>{formData.companyName}</Typography>
             </Grid>
             <Grid item xs={12} md={6}>
-              <Typography variant="body2" sx={{ color: '#888888' }}>Issue:</Typography>
-              <Typography variant="body1" sx={{ color: '#ffffff' }}>
+              <Typography variant="body2" sx={{ color: '#5C6B7A' }}>Issue:</Typography>
+              <Typography variant="body1" sx={{ color: '#0B1F3A' }}>
                 {issueTypes.find(t => t.value === formData.issueType)?.label}
               </Typography>
             </Grid>
             <Grid item xs={12} md={6}>
-              <Typography variant="body2" sx={{ color: '#888888' }}>Urgency:</Typography>
-              <Typography variant="body1" sx={{ color: '#ffffff' }}>
+              <Typography variant="body2" sx={{ color: '#5C6B7A' }}>Urgency:</Typography>
+              <Typography variant="body1" sx={{ color: '#0B1F3A' }}>
                 {urgencyLevels.find(t => t.value === formData.urgency)?.label}
               </Typography>
             </Grid>
             {formData.transactionId && (
               <Grid item xs={12} md={6}>
-                <Typography variant="body2" sx={{ color: '#888888' }}>Transaction ID:</Typography>
-                <Typography variant="body1" sx={{ color: '#ffffff' }}>{formData.transactionId}</Typography>
+                <Typography variant="body2" sx={{ color: '#5C6B7A' }}>Transaction ID:</Typography>
+                <Typography variant="body1" sx={{ color: '#0B1F3A' }}>{formData.transactionId}</Typography>
               </Grid>
             )}
             {formData.amount && (
               <Grid item xs={12} md={6}>
-                <Typography variant="body2" sx={{ color: '#888888' }}>Amount:</Typography>
-                <Typography variant="body1" sx={{ color: '#ffffff' }}>UGX {formData.amount}</Typography>
+                <Typography variant="body2" sx={{ color: '#5C6B7A' }}>Amount:</Typography>
+                <Typography variant="body1" sx={{ color: '#0B1F3A' }}>UGX {formData.amount}</Typography>
               </Grid>
             )}
             <Grid item xs={12}>
-              <Typography variant="body2" sx={{ color: '#888888' }}>Description:</Typography>
-              <Typography variant="body1" sx={{ color: '#ffffff', mt: 1 }}>
+              <Typography variant="body2" sx={{ color: '#5C6B7A' }}>Description:</Typography>
+              <Typography variant="body1" sx={{ color: '#0B1F3A', mt: 1 }}>
                 {formData.description}
               </Typography>
             </Grid>
@@ -792,55 +793,18 @@ const ComplaintForm = ({ onBack, onSuccess }) => {
   return (
     <Box
       sx={{
-        height: '100vh',
-        backgroundColor: '#000000',
-        color: '#ffffff',
+        backgroundColor: '#FFFFFF',
+        color: '#0B1F3A',
         display: 'flex',
-        flexDirection: 'column'
+        flexDirection: 'column',
       }}
     >
-      {/* Header */}
-      <Box
-        sx={{
-          p: 2,
-          borderBottom: '1px solid #333333',
-          backgroundColor: '#111111'
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-          <Typography variant="h5" sx={{ fontWeight: 600 }}>
-            File a Complaint
-          </Typography>
-          <IconButton
-            onClick={onBack}
-            sx={{
-              color: '#cccccc',
-              '&:hover': { backgroundColor: '#333333' }
-            }}
-          >
-            <BackIcon />
-          </IconButton>
-        </Box>
-
-        <Stepper activeStep={activeStep} sx={{ mb: 2 }}>
-          {steps.map((label, index) => (
-            <Step key={label}>
-              <StepLabel sx={{ color: '#ffffff' }}>
-                <Typography variant="caption" sx={{ color: '#cccccc' }}>
-                  {label}
-                </Typography>
-              </StepLabel>
-            </Step>
-          ))}
-        </Stepper>
-      </Box>
-
       {/* Success Banner */}
       {showSuccessBanner && (
         <Box
           sx={{
             backgroundColor: '#1b5e20',
-            color: '#ffffff',
+            color: '#0B1F3A',
             p: 3,
             borderBottom: '1px solid #2e7d32',
             display: 'flex',
@@ -866,7 +830,7 @@ const ComplaintForm = ({ onBack, onSuccess }) => {
                 onClick={handleCloseBanner}
                 sx={{
                   mt: 2,
-                  color: '#ffffff',
+                  color: '#0B1F3A',
                   borderColor: '#ffffff',
                   '&:hover': {
                     borderColor: '#ffffff',
@@ -881,7 +845,7 @@ const ComplaintForm = ({ onBack, onSuccess }) => {
           <IconButton
             onClick={handleCloseBanner}
             sx={{
-              color: '#ffffff',
+              color: '#0B1F3A',
               '&:hover': { backgroundColor: 'rgba(255,255,255,0.1)' }
             }}
           >
@@ -890,11 +854,80 @@ const ComplaintForm = ({ onBack, onSuccess }) => {
         </Box>
       )}
 
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', lg: 'minmax(300px, 0.95fr) minmax(340px, 1.05fr)' },
+          gap: { xs: 3, lg: 3.5 },
+          alignItems: 'start',
+        }}
+      >
+        <Box
+          sx={{
+            position: { lg: 'sticky' },
+            top: { lg: 8 },
+            alignSelf: 'start',
+          }}
+        >
+          <DraftAssistant
+            mode={mode === 'fraud' ? 'fraud' : 'complaint'}
+            sideBySide
+            onApplyDraft={(draft) => {
+              setFormData((prev) => ({
+                ...prev,
+                companyName: draft.companyName || prev.companyName,
+                transactionId: draft.transactionId || prev.transactionId,
+                dateOfIncident: draft.dateOfIncident || prev.dateOfIncident,
+                amount: draft.amount || prev.amount,
+                issueType: draft.issueType || prev.issueType,
+                description: draft.description || prev.description,
+                urgency:
+                  mode === 'fraud' || draft.issueType === 'fraud'
+                    ? 'high'
+                    : prev.urgency,
+              }));
+              setActiveStep(1);
+              setSnackbarMessage('Draft applied to the complaint form. Review the details before submitting.');
+              setSnackbarOpen(true);
+            }}
+          />
+        </Box>
+
+        <Box>
+          <Typography
+            sx={{
+              fontFamily: '"Fraunces", Georgia, serif',
+              fontWeight: 600,
+              fontSize: '1.15rem',
+              mb: 0.75,
+              color: '#0B1F3A',
+            }}
+          >
+            {mode === 'fraud' ? 'Fraud report form' : 'Complaint form'}
+          </Typography>
+          <Typography sx={{ color: '#5C6B7A', mb: 2.5, fontSize: '0.9rem', lineHeight: 1.55 }}>
+            Complete the steps below. Use the drafting assistant beside this form, then apply the draft here.
+          </Typography>
+
+          <Box sx={{ mb: 2.5 }}>
+            <Stepper activeStep={activeStep} alternativeLabel>
+              {steps.map((label) => (
+                <Step key={label}>
+                  <StepLabel>
+                    <Typography variant="caption" sx={{ color: '#5C6B7A' }}>
+                      {label}
+                    </Typography>
+                  </StepLabel>
+                </Step>
+              ))}
+            </Stepper>
+          </Box>
+
       {/* Content */}
-      <Box sx={{ flex: 1, overflowY: 'auto', p: 2 }}>
+      <Box sx={{ flex: 1, overflowY: 'auto', p: { xs: 0, md: 0 } }}>
         <Stepper activeStep={activeStep} orientation="vertical" sx={{ mb: 3 }}>
           <Step>
-            <StepLabel sx={{ color: '#ffffff' }}>Personal Information</StepLabel>
+            <StepLabel sx={{ color: '#0B1F3A' }}>Personal Information</StepLabel>
             <StepContent>
               {renderPersonalInfoStep()}
               <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
@@ -914,7 +947,7 @@ const ComplaintForm = ({ onBack, onSuccess }) => {
           </Step>
           
           <Step>
-            <StepLabel sx={{ color: '#ffffff' }}>Complaint Details</StepLabel>
+            <StepLabel sx={{ color: '#0B1F3A' }}>Complaint Details</StepLabel>
             <StepContent>
               {renderComplaintDetailsStep()}
               <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
@@ -922,9 +955,9 @@ const ComplaintForm = ({ onBack, onSuccess }) => {
                   variant="outlined"
                   onClick={handleBack}
                   sx={{
-                    borderColor: '#444444',
-                    color: '#cccccc',
-                    '&:hover': { borderColor: '#666666', backgroundColor: '#333333' }
+                    borderColor: 'rgba(11,31,58,0.28)',
+                    color: '#5C6B7A',
+                    '&:hover': { borderColor: 'rgba(11,31,58,0.35)', backgroundColor: 'rgba(11,31,58,0.06)' }
                   }}
                 >
                   Back
@@ -945,7 +978,7 @@ const ComplaintForm = ({ onBack, onSuccess }) => {
           </Step>
           
           <Step>
-            <StepLabel sx={{ color: '#ffffff' }}>Additional Information</StepLabel>
+            <StepLabel sx={{ color: '#0B1F3A' }}>Additional Information</StepLabel>
             <StepContent>
               {renderAdditionalInfoStep()}
               <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
@@ -953,9 +986,9 @@ const ComplaintForm = ({ onBack, onSuccess }) => {
                   variant="outlined"
                   onClick={handleBack}
                   sx={{
-                    borderColor: '#444444',
-                    color: '#cccccc',
-                    '&:hover': { borderColor: '#666666', backgroundColor: '#333333' }
+                    borderColor: 'rgba(11,31,58,0.28)',
+                    color: '#5C6B7A',
+                    '&:hover': { borderColor: 'rgba(11,31,58,0.35)', backgroundColor: 'rgba(11,31,58,0.06)' }
                   }}
                 >
                   Back
@@ -976,7 +1009,7 @@ const ComplaintForm = ({ onBack, onSuccess }) => {
           </Step>
           
           <Step>
-            <StepLabel sx={{ color: '#ffffff' }}>Review & Submit</StepLabel>
+            <StepLabel sx={{ color: '#0B1F3A' }}>Review & Submit</StepLabel>
             <StepContent>
               {renderReviewStep()}
               <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
@@ -984,9 +1017,9 @@ const ComplaintForm = ({ onBack, onSuccess }) => {
                   variant="outlined"
                   onClick={handleBack}
                   sx={{
-                    borderColor: '#444444',
-                    color: '#cccccc',
-                    '&:hover': { borderColor: '#666666', backgroundColor: '#333333' }
+                    borderColor: 'rgba(11,31,58,0.28)',
+                    color: '#5C6B7A',
+                    '&:hover': { borderColor: 'rgba(11,31,58,0.35)', backgroundColor: 'rgba(11,31,58,0.06)' }
                   }}
                 >
                   Back
@@ -1019,15 +1052,15 @@ const ComplaintForm = ({ onBack, onSuccess }) => {
 
       {/* Success/Error Status */}
       {submitStatus && (
-        <Box sx={{ p: 2, borderTop: '1px solid #333333', backgroundColor: '#111111' }}>
+        <Box sx={{ p: 2, borderTop: '1px solid rgba(11,31,58,0.1)', backgroundColor: '#FFFFFF' }}>
           {submitStatus === 'success' ? (
-            <Alert severity="success" sx={{ backgroundColor: '#1a1a1a', color: '#ffffff', border: '1px solid #4caf50' }}>
+            <Alert severity="success" sx={{ backgroundColor: '#F7F4EF', color: '#0B1F3A', border: '1px solid #4caf50' }}>
               <Typography variant="body2">
                 Complaint submitted successfully! You will receive a confirmation email with your reference number.
               </Typography>
             </Alert>
           ) : (
-            <Alert severity="error" sx={{ backgroundColor: '#1a1a1a', color: '#ffffff', border: '1px solid #f44336' }}>
+            <Alert severity="error" sx={{ backgroundColor: '#F7F4EF', color: '#0B1F3A', border: '1px solid #f44336' }}>
               <Typography variant="body2">
                 Failed to submit complaint. Please try again or contact CTDRU directly at +256-41-4230060.
               </Typography>
@@ -1035,6 +1068,9 @@ const ComplaintForm = ({ onBack, onSuccess }) => {
           )}
         </Box>
       )}
+
+        </Box>
+      </Box>
 
       {/* Snackbar for notifications */}
       <Snackbar

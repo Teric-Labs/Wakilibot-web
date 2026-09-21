@@ -20,7 +20,6 @@ import {
   ArrowBack as BackIcon,
   Security as SecurityIcon,
   CheckCircle as CheckIcon,
-  Error as ErrorIcon
 } from '@mui/icons-material';
 import api from '../services/api';
 
