@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   Box,
   Typography,
-  Paper,
   TextField,
   Button,
   FormControl,
@@ -19,19 +18,14 @@ import {
   Chip,
   Alert,
   CircularProgress,
-  Divider,
   FormControlLabel,
   Checkbox,
-  RadioGroup,
-  Radio,
   IconButton,
-  Tooltip,
   Snackbar
 } from '@mui/material';
 import {
   ArrowBack as BackIcon,
   CheckCircle as CheckIcon,
-  Warning as WarningIcon,
   Info as InfoIcon,
   Security as SecurityIcon,
   AccountBalance as BankIcon,
@@ -41,7 +35,6 @@ import {
   Store as StoreIcon,
   LocalShipping as ShippingIcon,
   AttachFile as AttachIcon,
-  Send as SendIcon,
   Close as CloseIcon
 } from '@mui/icons-material';
 import api from '../services/api';
@@ -200,8 +193,11 @@ const ComplaintForm = ({ onBack, onSuccess, initialComplaintType = '', mode = 'c
       case 2: // Additional Information
         if (!formData.agreeToTerms) newErrors.agreeToTerms = 'You must agree to the terms';
         break;
+
+      default:
+        break;
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };

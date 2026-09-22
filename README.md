@@ -39,7 +39,31 @@ Open `http://localhost:3000`.
 
 ## API
 
-The API base URL is configured in `src/services/api.js`. The current configuration targets the hosted WakiliBot Agent API.
+Base URLs are configured in `src/services/api.js` via environment variables, each falling back to the hosted production service if unset:
+
+- `REACT_APP_AGENT_API_URL` — chat/voice endpoints (defaults to the hosted WakiliBot Agent API)
+- `REACT_APP_BACKEND_API_URL` — auth/complaints/documents endpoints (defaults to the hosted WakiliBot Core API)
+
+Text-to-speech uses [tts.atekervoices.com](https://tts.atekervoices.com/docs) (`/v1/audio/speech/stream`), which streams raw PCM audio rather than returning a file URL — `MessageBubble.jsx` decodes and plays it via the Web Audio API instead of a plain `<audio>` element.
+
+`docker-compose.yml` in the parent `phosai/` directory sets both URLs to the local `agent`/`backend` containers (`localhost:8001`/`localhost:8000`) for local development.
+
+## Testing
+
+```bash
+CI=true npm test -- --watchAll=false
+```
+
+48 tests across 7 suites: the language Redux slice, the API service layer (including the TTS streaming client, mocking `axios`/`fetch` as appropriate), and component tests for `LoginPage`, `SignupPage`, `ComplaintForm`, and `MessageBubble` (Web Audio API playback, mocked since jsdom has no native implementation). `npm test` alone launches Jest in interactive watch mode.
+
+## Docker
+
+```bash
+docker build -t wakilibot-web .
+docker run --rm -p 3000:3000 wakilibot-web
+```
+
+This is a dev-server image (`npm start`), matching how the parent `phosai/docker-compose.yml` runs it — not a production static build.
 
 ## Scripts
 

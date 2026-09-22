@@ -13,22 +13,15 @@ import {
   Paper,
   IconButton,
   Tooltip,
-  Card,
-  CardContent,
-  LinearProgress,
   Avatar
 } from '@mui/material';
 import {
   Close as CloseIcon,
   Refresh as RefreshIcon,
   Info as InfoIcon,
-  Speed as SpeedIcon,
   CheckCircle as CheckCircleIcon,
   Warning as WarningIcon,
-  Error as ErrorIcon,
-  SmartToy as SmartToyIcon,
-  Security as SecurityIcon,
-  TrendingUp as TrendingUpIcon
+  Error as ErrorIcon
 } from '@mui/icons-material';
 import WakilibotLogo from './WakilibotLogo';
 import api from '../services/api';

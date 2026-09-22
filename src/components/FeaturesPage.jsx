@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Box,
   Typography,
@@ -6,20 +6,13 @@ import {
   Container,
   Grid,
   Card,
-  CardContent,
   Avatar,
-  IconButton,
-  useMediaQuery,
-  useTheme,
   Chip,
   Divider,
   List,
   ListItem,
   ListItemIcon,
-  ListItemText,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails
+  ListItemText
 } from '@mui/material';
 import TopNav from './TopNav';
 import {
@@ -28,40 +21,21 @@ import {
   Phone as PhoneIcon,
   Sms as SmsIcon,
   Security as SecurityIcon,
-  Speed as SpeedIcon,
   Language as LanguageIcon,
-  Cloud as CloudIcon,
   Analytics as AnalyticsIcon,
   Support as SupportIcon,
   CheckCircle as CheckIcon,
   ArrowForward as ArrowIcon,
-  ExpandMore as ExpandMoreIcon,
   Public as PublicIcon,
-  Business as BusinessIcon,
-  School as SchoolIcon,
   AccountBalance as BankIcon,
-  Gavel as GavelIcon,
-  Shield as ShieldIcon,
-  Timer as TimerIcon,
-  Verified as VerifiedIcon,
-  TrendingUp as TrendingUpIcon,
-  Group as GroupIcon,
   Settings as SettingsIcon,
   Link as IntegrationIcon,
-  Storage as StorageIcon,
-  Lock as LockIcon,
-  Assessment as AssessmentIcon,
   Notifications as NotificationsIcon,
-  Accessibility as AccessibilityIcon,
   PhoneAndroid as PhoneAndroidIcon,
-  Computer as ComputerIcon,
-  Headset as HeadsetIcon
+  Computer as ComputerIcon
 } from '@mui/icons-material';
 
 const FeaturesPage = ({ onBack, onLogin, onSignup, onHowItWorks, onAboutUs }) => {
-  const [expandedFeature, setExpandedFeature] = useState(false);
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const coreFeatures = [
     {
@@ -139,11 +113,6 @@ const FeaturesPage = ({ onBack, onLogin, onSignup, onHowItWorks, onAboutUs }) =>
       useCases: ['Service Quality', 'Billing Disputes', 'Network Issues', 'Data Problems']
     }
   ];
-
-
-  const handleFeatureExpand = (panel) => (event, isExpanded) => {
-    setExpandedFeature(isExpanded ? panel : false);
-  };
 
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: '#F7F4EF', color: '#0B1F3A' }}>

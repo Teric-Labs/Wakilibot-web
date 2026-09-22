@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { store } from '../store';
 
-const API_BASE_URL = process.env.REACT_APP_AGENT_URL || 'http://127.0.0.1:8001';
-const BACKEND_API_URL = process.env.REACT_APP_BACKEND_URL || 'http://127.0.0.1:8094';
+const API_BASE_URL = process.env.REACT_APP_AGENT_API_URL || 'https://wakilibot-agent.onrender.com';
+const BACKEND_API_URL = process.env.REACT_APP_BACKEND_API_URL || 'https://wakilibot-main.onrender.com';
 
 // Get current language from Redux store
 const getCurrentLanguageFromStore = () => {
@@ -33,9 +33,9 @@ const getCurrentLanguageFallback = () => {
   return 'en';
 };
 
-// Generate a unique user ID for this session (guest-capable)
+// Generate a unique user ID for this session
 const generateUserId = () => {
-  return `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  return `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 };
 
 // Store user ID in session storage for persistence
@@ -46,29 +46,6 @@ const getUserId = () => {
     sessionStorage.setItem('ctdru_user_id', userId);
   }
   return userId;
-};
-
-/** Create or return a guest session identity for ChatGPT-style try-without-login. */
-const ensureGuestUser = () => {
-  try {
-    const existing = JSON.parse(sessionStorage.getItem('wakilibot_guest') || 'null');
-    if (existing?.user_id && existing?.isGuest) {
-      sessionStorage.setItem('ctdru_user_id', existing.user_id);
-      return existing;
-    }
-  } catch {
-    /* ignore */
-  }
-  const guestId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  sessionStorage.setItem('ctdru_user_id', guestId);
-  const guest = {
-    user_id: guestId,
-    full_name: 'Guest',
-    isGuest: true,
-    preferred_language: 'english',
-  };
-  sessionStorage.setItem('wakilibot_guest', JSON.stringify(guest));
-  return guest;
 };
 
 // Store conversation ID in session storage for persistence
@@ -375,9 +352,9 @@ const api = {
   submitComplaint: async (complaintData) => {
     try {
       console.log('API: Submitting complaint to Backend:', complaintData);
-      console.log('API: Backend URL:', BACKEND_API_URL + '/complaints');
+      console.log('API: Backend URL:', `${BACKEND_API_URL}/complaints`);
       
-      const response = await axios.post(BACKEND_API_URL + '/complaints', complaintData, {
+      const response = await axios.post(`${BACKEND_API_URL}/complaints`, complaintData, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -409,7 +386,7 @@ const api = {
   // Submit incident to Backend API
   submitIncident: async (incidentData) => {
     try {
-      const response = await axios.post(BACKEND_API_URL + '/incidents', incidentData, {
+      const response = await axios.post(`${BACKEND_API_URL}/incidents`, incidentData, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -436,7 +413,7 @@ const api = {
   registerUser: async (userData) => {
     try {
       console.log('API: Registering user:', userData);
-      const response = await axios.post(BACKEND_API_URL + '/auth/register', userData, {
+      const response = await axios.post(`${BACKEND_API_URL}/auth/register`, userData, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -456,7 +433,7 @@ const api = {
   loginUser: async (loginData) => {
     try {
       console.log('API: Logging in user:', loginData);
-      const response = await axios.post(BACKEND_API_URL + '/auth/login', loginData, {
+      const response = await axios.post(`${BACKEND_API_URL}/auth/login`, loginData, {
           headers: {
           'Content-Type': 'application/json',
         },
@@ -556,7 +533,7 @@ const api = {
       formData.append('user_id', getAppropriateUserId());
 
       console.log('API: Uploading document:', documentData.title);
-      const response = await axios.post(BACKEND_API_URL + '/documents/upload', formData, {
+      const response = await axios.post(`${BACKEND_API_URL}/documents/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -629,7 +606,7 @@ const api = {
   getDocumentStats: async () => {
     try {
       console.log('API: Fetching document statistics');
-      const response = await axios.get(BACKEND_API_URL + '/documents/stats/overview', {
+      const response = await axios.get(`${BACKEND_API_URL}/documents/stats/overview`, {
         timeout: 10000,
       });
       
@@ -645,7 +622,7 @@ const api = {
   resetPassword: async (email, newPassword, confirmPassword) => {
     try {
       console.log('API: Resetting password for:', email);
-      const response = await axios.post(BACKEND_API_URL + '/auth/reset-password', {
+      const response = await axios.post(`${BACKEND_API_URL}/auth/reset-password`, {
         email: email,
         new_password: newPassword,
         confirm_password: confirmPassword
@@ -667,7 +644,7 @@ const api = {
   changePassword: async (email, currentPassword, newPassword) => {
     try {
       console.log('API: Changing password for:', email);
-      const response = await axios.post(BACKEND_API_URL + '/auth/change-password', {
+      const response = await axios.post(`${BACKEND_API_URL}/auth/change-password`, {
         email: email,
         current_password: currentPassword,
         new_password: newPassword,
@@ -691,13 +668,6 @@ const api = {
   utils: {
     // Get current user ID (authenticated user from localStorage or session user)
     getCurrentUserId: () => getAppropriateUserId(),
-
-    // Guest session (no account required)
-    ensureGuestUser: () => ensureGuestUser(),
-    clearGuestUser: () => {
-      sessionStorage.removeItem('wakilibot_guest');
-    },
-    isGuestUser: (user) => Boolean(user?.isGuest),
     
     // Get session user ID (legacy function)
     getSessionUserId: () => getUserId(),
@@ -860,14 +830,15 @@ const api = {
 };
 
 // TTS (Text-to-Speech) functionality
-const TTS_API_URL = 'https://laurine-unappropriable-unvolcanically.ngrok-free.app/vocify';
+const TTS_API_URL = process.env.REACT_APP_TTS_API_URL || 'https://tts.atekervoices.com';
+// PCM format the streaming endpoint returns (see /openapi.json: "raw PCM 16-bit 16kHz")
+const TTS_SAMPLE_RATE = 16000;
 
 // Add TTS function to the main api object
-api.generateTTS = async (text, sourceLang = null) => {
+// Returns raw PCM audio bytes (not a file URL) - see components/MessageBubble.jsx
+// for how it's decoded and played via the Web Audio API.
+api.generateTTS = async (text) => {
   try {
-    const userId = getAppropriateUserId();
-    const currentLanguage = sourceLang || getCurrentLanguageFromStore();
-    
     // Validate text input
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
       throw new Error('Text is required for TTS generation');
@@ -875,49 +846,37 @@ api.generateTTS = async (text, sourceLang = null) => {
 
     // Clean text for TTS - remove symbols and unknown characters
     const cleanedText = api.utils.cleanTextForTTS(text);
-    
+
     // Limit text length to prevent API issues
     const maxLength = 5000;
     const processedText = cleanedText.length > maxLength ? cleanedText.substring(0, maxLength) + '...' : cleanedText;
-    
+
     console.log('🔊 [TTS DEBUG] Generating TTS for text:', processedText.substring(0, 50) + '...');
-    console.log('🔊 [TTS DEBUG] Using language:', currentLanguage);
-    console.log('🔊 [TTS DEBUG] User ID:', userId);
 
-    const formData = new FormData();
-    formData.append('user_id', userId);
-    formData.append('source_lang', currentLanguage);
-    formData.append('doc', processedText);
-
-    const response = await axios.post(TTS_API_URL, formData, {
+    const response = await fetch(`${TTS_API_URL}/v1/audio/speech/stream`, {
+      method: 'POST',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'application/json',
       },
-      timeout: 30000, // 30 seconds timeout for TTS generation
+      body: JSON.stringify({ input: processedText }),
     });
-    
-    console.log('🔊 [TTS DEBUG] TTS response received:', response.data);
-    
-    // Validate response
-    if (!response.data || !response.data.source_lang_audio_file_path) {
-      throw new Error('Invalid TTS response: missing audio file path');
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => '');
+      throw new Error(`TTS service error: ${response.status}${errorText ? ` - ${errorText}` : ''}`);
     }
-    
-    return response.data;
+
+    const pcm = await response.arrayBuffer();
+    console.log('🔊 [TTS DEBUG] TTS PCM bytes received:', pcm.byteLength);
+
+    if (!pcm || pcm.byteLength === 0) {
+      throw new Error('Invalid TTS response: empty audio data');
+    }
+
+    return { pcm, sampleRate: TTS_SAMPLE_RATE };
   } catch (error) {
     console.error('🔊 [TTS DEBUG] Error generating TTS:', error);
-    
-    // Return a more user-friendly error message
-    if (error.response) {
-      // Server responded with error status
-      throw new Error(`TTS service error: ${error.response.status} - ${error.response.data?.message || 'Unknown error'}`);
-    } else if (error.request) {
-      // Request was made but no response received
-      throw new Error('TTS service is currently unavailable. Please try again later.');
-    } else {
-      // Something else happened
-      throw new Error(`TTS generation failed: ${error.message}`);
-    }
+    throw error instanceof Error ? error : new Error(`TTS generation failed: ${error}`);
   }
 };
 
