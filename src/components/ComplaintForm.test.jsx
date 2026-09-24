@@ -1,13 +1,27 @@
 jest.mock('../services/api', () => ({
   submitComplaint: jest.fn(),
+  sendMessage: jest.fn(),
 }));
 
 import { render, screen, waitFor } from '@testing-library/react';
+import { Provider } from 'react-redux';
 import userEvent from '@testing-library/user-event';
+import { store } from '../store';
 import ComplaintForm from './ComplaintForm';
 import api from '../services/api';
 
 const noop = () => {};
+
+// ComplaintForm renders <DraftAssistant>, which calls useLanguage() - a
+// react-redux hook - so it needs a real <Provider> ancestor even though
+// '../services/api' above is mocked (that only covers the api module's own
+// import of the store, not useLanguage's separate, direct import of it).
+const renderComplaintForm = (props) =>
+  render(
+    <Provider store={store}>
+      <ComplaintForm {...props} />
+    </Provider>
+  );
 
 // MUI's Collapse (used by StepContent) can leave a just-completed step's
 // button in the DOM while it animates closed, so more than one "Next Step"
@@ -35,7 +49,7 @@ beforeEach(() => {
 });
 
 test('personal info step requires a valid full name, email, and phone', async () => {
-  render(<ComplaintForm onBack={noop} onSuccess={noop} />);
+  renderComplaintForm({ onBack: noop, onSuccess: noop });
 
   await userEvent.type(screen.getByLabelText(/Email Address/i), 'not-an-email');
   await userEvent.type(screen.getByLabelText(/Phone Number/i), 'abc');
@@ -47,7 +61,7 @@ test('personal info step requires a valid full name, email, and phone', async ()
 });
 
 test('complaint-details step rejects a description shorter than 20 characters', async () => {
-  render(<ComplaintForm onBack={noop} onSuccess={noop} />);
+  renderComplaintForm({ onBack: noop, onSuccess: noop });
   await fillPersonalInfo();
 
   const boxes = await screen.findAllByRole('combobox');
@@ -63,9 +77,13 @@ test('complaint-details step rejects a description shorter than 20 characters', 
 });
 
 test('requires agreement to terms, then submits the complaint successfully', async () => {
+  // Longer timeout: this test walks all 3 form steps, and every render now
+  // also mounts <DraftAssistant> (a whole second chat UI added to the page
+  // since this test was first written) - measurably heavier than the
+  // default 5000ms budget covers.
   api.submitComplaint.mockResolvedValue({ complaint_id: 'CMP-1' });
   const onSuccess = jest.fn();
-  render(<ComplaintForm onBack={noop} onSuccess={onSuccess} />);
+  renderComplaintForm({ onBack: noop, onSuccess });
   await fillPersonalInfo();
 
   const boxes = await screen.findAllByRole('combobox');
@@ -98,4 +116,4 @@ test('requires agreement to terms, then submits the complaint successfully', asy
     transaction_id: null,
   });
   expect(onSuccess).toHaveBeenCalledWith({ complaint_id: 'CMP-1' });
-});
+}, 15000);

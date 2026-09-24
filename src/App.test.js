@@ -13,5 +13,7 @@ import App from './App';
 
 test('renders the landing page by default', async () => {
   render(<App />);
-  expect(await screen.findByText(/Meet Wakilibot/i)).toBeInTheDocument();
+  // The hero's actual <h1> tagline - "Meet Wakilibot" never existed on this
+  // page; this assertion was stale relative to LandingPage.jsx's real copy.
+  expect(await screen.findByText(/Capture complaints\. Report fraud\. Protect your money\./i)).toBeInTheDocument();
 });

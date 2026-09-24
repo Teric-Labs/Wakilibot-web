@@ -830,13 +830,22 @@ const api = {
 };
 
 // TTS (Text-to-Speech) functionality
-const TTS_API_URL = process.env.REACT_APP_TTS_API_URL || 'https://tts.atekervoices.com';
 // PCM format the streaming endpoint returns (see /openapi.json: "raw PCM 16-bit 16kHz")
 const TTS_SAMPLE_RATE = 16000;
 
 // Add TTS function to the main api object
 // Returns raw PCM audio bytes (not a file URL) - see components/MessageBubble.jsx
 // for how it's decoded and played via the Web Audio API.
+//
+// This goes through the agent's /tts proxy rather than calling
+// tts.atekervoices.com directly: that service doesn't send
+// Access-Control-Allow-Origin on either its OPTIONS preflight (which 405s)
+// or its actual POST response, so browsers block it outright with
+// "NetworkError when attempting to fetch resource" even though the same
+// request works fine server-to-server. The agent already allows all
+// origins (see its CORSMiddleware config) and has no CORS restriction
+// calling tts.atekervoices.com itself, so proxying through it sidesteps
+// the problem entirely - same pattern already used for translation/STT.
 api.generateTTS = async (text) => {
   try {
     // Validate text input
@@ -853,7 +862,7 @@ api.generateTTS = async (text) => {
 
     console.log('🔊 [TTS DEBUG] Generating TTS for text:', processedText.substring(0, 50) + '...');
 
-    const response = await fetch(`${TTS_API_URL}/v1/audio/speech/stream`, {
+    const response = await fetch(`${API_BASE_URL}/tts`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

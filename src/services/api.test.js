@@ -146,8 +146,11 @@ describe('generateTTS', () => {
 
     const result = await api.generateTTS('Hello there');
 
+    // Goes through the agent's /tts proxy, not tts.atekervoices.com directly -
+    // that service blocks browser calls outright (no CORS headers on either
+    // its preflight or its actual response).
     expect(global.fetch).toHaveBeenCalledWith(
-      'https://tts.atekervoices.com/v1/audio/speech/stream',
+      'https://wakilibot-agent.onrender.com/tts',
       expect.objectContaining({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
