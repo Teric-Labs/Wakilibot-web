@@ -19,7 +19,7 @@ import {
   VisibilityOff as VisibilityOffIcon,
   ArrowBack as BackIcon,
   Security as SecurityIcon,
-  CheckCircle as CheckIcon
+  CheckCircle as CheckIcon,
 } from '@mui/icons-material';
 import api from '../services/api';
 

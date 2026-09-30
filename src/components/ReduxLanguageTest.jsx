@@ -7,7 +7,8 @@ import {
   CardContent, 
   Stack,
   Chip,
-  Alert
+  Alert,
+  Divider
 } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
 import { 
