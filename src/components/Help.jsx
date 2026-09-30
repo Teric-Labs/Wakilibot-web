@@ -36,11 +36,9 @@ import {
   Speed as SpeedIcon,
   Shield as ShieldIcon
 } from '@mui/icons-material';
-import ComplaintForm from './ComplaintForm';
 
-const Help = ({ onBack }) => {
+const Help = ({ onBack, onFileComplaint, onReportFraud }) => {
   const [activeTab, setActiveTab] = useState('forms');
-  const [showComplaintForm, setShowComplaintForm] = useState(false);
   const [, setSelectedForm] = useState(null);
   const [hoveredCard, setHoveredCard] = useState(null);
 
@@ -299,7 +297,7 @@ const Help = ({ onBack }) => {
                     }}
                     onClick={() => {
                       setSelectedForm(form);
-                      setShowComplaintForm(true);
+                      onFileComplaint?.();
                     }}
                   >
                     Start Complaint Form
@@ -674,28 +672,6 @@ const Help = ({ onBack }) => {
       </Box>
     </Container>
   );
-
-  const handleComplaintSuccess = (result) => {
-    console.log('Complaint submitted successfully:', result);
-    setShowComplaintForm(false);
-    setSelectedForm(null);
-    // You can add additional success handling here
-  };
-
-  const handleBackFromForm = () => {
-    setShowComplaintForm(false);
-    setSelectedForm(null);
-  };
-
-  // Show ComplaintForm if a form is selected
-  if (showComplaintForm) {
-    return (
-      <ComplaintForm 
-        onBack={handleBackFromForm}
-        onSuccess={handleComplaintSuccess}
-      />
-    );
-  }
 
   return (
     <Box
