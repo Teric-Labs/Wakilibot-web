@@ -1,8 +1,12 @@
 import React from 'react';
 import { Box, Typography, Button, Stack } from '@mui/material';
-import { tokens } from '../styles/theme';
+import { tokens, radii } from '../styles/theme';
+import { uppercaseLabelSx } from './PanelCard';
 
-const sharp = { borderRadius: 0 };
+const sharp = {
+  // Square, like every other panel surface (radii.card); spread so the rows below stay readable.
+  borderRadius: radii.card,
+};
 
 const FieldRow = ({ label, value, last }) => (
   <Box
@@ -16,17 +20,7 @@ const FieldRow = ({ label, value, last }) => (
       alignItems: 'baseline',
     }}
   >
-    <Typography
-      sx={{
-        fontSize: '0.72rem',
-        letterSpacing: '0.06em',
-        textTransform: 'uppercase',
-        color: tokens.muted,
-        fontWeight: 600,
-      }}
-    >
-      {label}
-    </Typography>
+    <Typography sx={uppercaseLabelSx}>{label}</Typography>
     <Typography
       sx={{
         fontWeight: 560,

@@ -2,7 +2,7 @@
 // Run this in the browser console or as a separate test file
 
 const testAPI = async () => {
-  const API_BASE_URL = 'http://localhost:8000';
+  const API_BASE_URL = 'https://wakilibot-agent-0wm0.onrender.com';
   
   console.log('🧪 Testing CTDRU AI Agent API Endpoints...\n');
   
@@ -55,7 +55,7 @@ const testAPI = async () => {
   } catch (error) {
     console.error('❌ Test failed:', error);
     console.log('\n🔧 Troubleshooting:');
-    console.log('1. Make sure the customAgent backend is running on port 8000');
+    console.log('1. Make sure the customAgent backend is running at https://wakilibot-agent-0wm0.onrender.com');
     console.log('2. Check if there are any CORS issues');
     console.log('3. Verify the API_BASE_URL is correct');
   }

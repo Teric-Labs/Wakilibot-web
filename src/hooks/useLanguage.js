@@ -1,13 +1,14 @@
 import { useSelector, useDispatch } from 'react-redux';
 import { useEffect } from 'react';
-import { 
-  selectLanguage, 
-  selectIsInitialized, 
-  selectLanguageOptions, 
+import {
+  selectLanguage,
+  selectIsInitialized,
+  selectLanguageOptions,
   selectCurrentLanguageInfo,
   setLanguage,
-  initializeLanguage 
+  initializeLanguage,
 } from '../store/slices/languageSlice';
+import { t as translateFn } from '../i18n/translations';
 
 export const useLanguage = () => {
   const dispatch = useDispatch();
@@ -40,15 +41,21 @@ export const useLanguage = () => {
     return selectedLanguage;
   };
 
+  /**
+   * Translation helper bound to the current language.
+   * Usage: t('sidebar', 'workspace') → localized string
+   */
+  const t = (section, key) => translateFn(selectedLanguage, section, key);
+
   return {
     selectedLanguage,
     updateLanguage,
     getCurrentLanguageInfo,
     getCurrentLanguage,
     languageOptions,
-    isInitialized
+    isInitialized,
+    t,
   };
 };
 
 export default useLanguage;
-

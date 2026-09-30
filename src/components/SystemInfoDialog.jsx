@@ -41,11 +41,16 @@ const SystemInfoDialog = ({ open, onClose }) => {
   const fetchSystemInfo = async () => {
     try {
       setLoading(true);
-      const [healthData, serviceData] = await Promise.all([
+      const [healthData, serviceData, mainBackendData] = await Promise.allSettled([
         api.getHealthStatus(),
-        api.getServiceInfo()
+        api.getServiceInfo(),
+        api.getMainBackendHealthStatus(),
       ]);
-      setSystemInfo({ health: healthData, service: serviceData });
+      setSystemInfo({
+        health: healthData.status === 'fulfilled' ? healthData.value : null,
+        service: serviceData.status === 'fulfilled' ? serviceData.value : null,
+        mainBackend: mainBackendData.status === 'fulfilled' ? mainBackendData.value : null,
+      });
     } catch (error) {
       console.error('Error fetching system info:', error);
     } finally {
@@ -177,6 +182,31 @@ const SystemInfoDialog = ({ open, onClose }) => {
                 </Grid>
               </Grid>
             </Paper>
+
+            {/* Main Backend Status */}
+            {systemInfo.mainBackend && (
+              <Paper sx={{ p: 2, mb: 2 }}>
+                <Typography variant="h6" gutterBottom>
+                  Main Backend Service
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                  {getStatusIcon(systemInfo.mainBackend.status)}
+                  <Typography variant="body1">
+                    {systemInfo.mainBackend.service || 'Fintech Complaints API'} - {systemInfo.mainBackend.status.toUpperCase()}
+                  </Typography>
+                  {systemInfo.mainBackend.version && (
+                    <Chip
+                      label={`v${systemInfo.mainBackend.version}`}
+                      color={getStatusColor(systemInfo.mainBackend.status)}
+                      size="small"
+                    />
+                  )}
+                </Box>
+                <Typography variant="caption" sx={{ fontFamily: 'monospace', color: 'text.secondary' }}>
+                  {systemInfo.mainBackend.url}
+                </Typography>
+              </Paper>
+            )}
 
             {/* Features */}
             <Paper sx={{ p: 2, mb: 2 }}>

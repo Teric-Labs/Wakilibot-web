@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { t as translateFn } from '../i18n/translations';
 
 // Language options with display names and codes
 export const LANGUAGE_OPTIONS = [
@@ -8,7 +9,7 @@ export const LANGUAGE_OPTIONS = [
   { code: 'ac', name: 'Acholi', flag: '🇺🇬' },
   { code: 'at', name: 'Ateso', flag: '🇺🇬' },
   { code: 'nyn', name: 'Runyankole', flag: '🇺🇬' },
-  { code: 'xog', name: 'Lusoga', flag: '🇺🇬' }
+  { code: 'xog', name: 'Lusoga', flag: '🇺🇬' },
 ];
 
 // Create the language context
@@ -19,10 +20,9 @@ export const LanguageProvider = ({ children }) => {
   // Initialize with localStorage value if available, otherwise default to 'en'
   const getInitialLanguage = () => {
     try {
-      // Check if we're in a browser environment
       if (typeof window !== 'undefined' && window.localStorage) {
         const savedLanguage = localStorage.getItem('wakilibot_language');
-        if (savedLanguage && LANGUAGE_OPTIONS.find(lang => lang.code === savedLanguage)) {
+        if (savedLanguage && LANGUAGE_OPTIONS.find((lang) => lang.code === savedLanguage)) {
           console.log('🌍 [INIT] Loading saved language from localStorage:', savedLanguage);
           return savedLanguage;
         }
@@ -43,7 +43,7 @@ export const LanguageProvider = ({ children }) => {
       try {
         if (typeof window !== 'undefined' && window.localStorage) {
           const savedLanguage = localStorage.getItem('wakilibot_language');
-          if (savedLanguage && LANGUAGE_OPTIONS.find(lang => lang.code === savedLanguage)) {
+          if (savedLanguage && LANGUAGE_OPTIONS.find((lang) => lang.code === savedLanguage)) {
             console.log('🌍 [EFFECT] Setting language from localStorage:', savedLanguage);
             setSelectedLanguage(savedLanguage);
           } else {
@@ -64,23 +64,16 @@ export const LanguageProvider = ({ children }) => {
 
   // Save language preference to localStorage when changed
   const updateLanguage = (languageCode) => {
-    if (LANGUAGE_OPTIONS.find(lang => lang.code === languageCode)) {
+    if (LANGUAGE_OPTIONS.find((lang) => lang.code === languageCode)) {
       setSelectedLanguage(languageCode);
       localStorage.setItem('wakilibot_language', languageCode);
       console.log('🌍 Language updated to:', languageCode);
-      console.log('🌍 Language context updated - selectedLanguage:', languageCode);
-      console.log('🌍 localStorage updated with:', localStorage.getItem('wakilibot_language'));
-      
-      // Force a small delay to ensure localStorage is updated before any API calls
-      setTimeout(() => {
-        console.log('🌍 [SYNC CHECK] localStorage after update:', localStorage.getItem('wakilibot_language'));
-      }, 100);
     }
   };
 
   // Get current language info
   const getCurrentLanguageInfo = () => {
-    return LANGUAGE_OPTIONS.find(lang => lang.code === selectedLanguage) || LANGUAGE_OPTIONS[0];
+    return LANGUAGE_OPTIONS.find((lang) => lang.code === selectedLanguage) || LANGUAGE_OPTIONS[0];
   };
 
   // Centralized language getter that ensures consistency
@@ -88,20 +81,23 @@ export const LanguageProvider = ({ children }) => {
     return selectedLanguage;
   };
 
+  /**
+   * Translation helper bound to the current language.
+   * Usage: t('sidebar', 'workspace') → 'Eneo la Kazi' (in Swahili)
+   */
+  const t = (section, key) => translateFn(selectedLanguage, section, key);
+
   const value = {
     selectedLanguage,
     updateLanguage,
     getCurrentLanguageInfo,
-    getCurrentLanguage, // Add this to context
+    getCurrentLanguage,
     languageOptions: LANGUAGE_OPTIONS,
-    isInitialized
+    isInitialized,
+    t,
   };
 
-  return (
-    <LanguageContext.Provider value={value}>
-      {children}
-    </LanguageContext.Provider>
-  );
+  return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 };
 
 // Custom hook to use the language context

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Typography, IconButton } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { BackIcon } from './icons';
 import { tokens } from '../styles/theme';
 
 /**
@@ -27,7 +27,7 @@ const StandardPanel = ({
       sx={{
         px: 3,
         py: 1.75,
-        borderBottom: '1px solid rgba(11,31,58,0.08)',
+        borderBottom: `1px solid ${tokens.line}`,
         backgroundColor: '#FFFFFF',
         display: 'flex',
         alignItems: 'center',
@@ -49,14 +49,14 @@ const StandardPanel = ({
           {title}
         </Typography>
         {subtitle && (
-          <Typography sx={{ color: tokens.muted, fontSize: '0.82rem', mt: 0.25 }}>
+          <Typography sx={{ color: tokens.muted, fontSize: '0.82rem', mt: 0.3, lineHeight: 1.5 }}>
             {subtitle}
           </Typography>
         )}
       </Box>
       {onBack && (
         <IconButton aria-label="Back to chat" onClick={onBack} sx={{ color: tokens.muted }}>
-          <ArrowBackIcon />
+          <BackIcon size={22} />
         </IconButton>
       )}
     </Box>

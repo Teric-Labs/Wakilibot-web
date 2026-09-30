@@ -1,26 +1,34 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { 
-  Paper, 
-  InputBase, 
-  IconButton, 
-  Box, 
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import {
+  Paper,
+  InputBase,
+  IconButton,
+  Box,
   CircularProgress,
-  Fade,
   Typography,
-  Button,
-  Stack
 } from '@mui/material';
-import SendIcon from '@mui/icons-material/Send';
+import { MicIcon, SendIcon } from './icons';
 import VoiceRecorder from './VoiceRecorder';
 import api from '../services/api';
 import { useLanguage } from '../hooks/useLanguage';
-import { tokens } from '../styles/theme';
+import { tokens, radii } from '../styles/theme';
 
-const MessageInput = ({ 
-  onMessageReceived, 
-  onStreamingMessage, 
-  conversationId, 
-  onStartNewConversation,
+/**
+ * The composer: a text field, a microphone, and a send control.
+ *
+ * While a recording is in progress the voice panel takes the whole slot — a half-used
+ * text box next to a live transcript only confuses which one is being sent.
+ *
+ * The VoiceRecorder is rendered ONCE and stays mounted regardless of phase, preventing
+ * the remount bug that wiped recording state when the user tapped the mic.
+ */
+const MessageInput = ({
+  onMessageReceived,
+  onStreamingMessage,
+  conversationId,
+  activeIntent = null,
+  activeTopicLabel = null,
+  onSendTranscript,
   isLoading,
   setIsLoading,
   isStreaming,
@@ -28,43 +36,27 @@ const MessageInput = ({
   isWaitingForResponse,
   setIsWaitingForResponse
 }) => {
-  const { selectedLanguage, isInitialized, getCurrentLanguage } = useLanguage();
+  const { selectedLanguage, isInitialized } = useLanguage();
   const [message, setMessage] = useState('');
+  const [voicePhase, setVoicePhase] = useState('idle');
   const inputRef = useRef(null);
-
-  // Debug: Log language changes and verify consistency
-  useEffect(() => {
-    console.log('🌍 [MESSAGE INPUT] Language changed to:', selectedLanguage);
-    console.log('🌍 [MESSAGE INPUT] Is initialized:', isInitialized);
-    console.log('🌍 [MESSAGE INPUT] Context getCurrentLanguage():', getCurrentLanguage());
-    console.log('🌍 [MESSAGE INPUT] localStorage value:', localStorage.getItem('wakilibot_language'));
-    
-    // Verify consistency
-    const contextLang = getCurrentLanguage();
-    const storageLang = localStorage.getItem('wakilibot_language');
-    if (contextLang !== storageLang) {
-      console.warn('🌍 [MESSAGE INPUT] ⚠️ INCONSISTENCY DETECTED!');
-      console.warn('   Context language:', contextLang);
-      console.warn('   Storage language:', storageLang);
-    } else {
-      console.log('🌍 [MESSAGE INPUT] ✅ Language consistency verified');
-    }
-  }, [selectedLanguage, isInitialized, getCurrentLanguage]);
+  const recorderRef = useRef(null);
 
   // Focus input when component mounts
   useEffect(() => {
-    if (inputRef.current) {
+    if (inputRef.current && voicePhase === 'idle') {
       inputRef.current.focus();
     }
-  }, []);
+  }, [voicePhase]);
+
+  const busy = isLoading || isStreaming;
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (message.trim() === '' || isLoading || isStreaming) return;
-    
+    if (e) e.preventDefault();
+    if (message.trim() === '' || busy) return;
+
     // Wait for language context to be initialized
     if (!isInitialized) {
-      console.warn('🌍 [MESSAGE INPUT] Language context not initialized yet, waiting...');
       return;
     }
 
@@ -85,23 +77,19 @@ const MessageInput = ({
       // Try streaming API first, fallback to regular API if it fails
       let response;
       let streamingSucceeded = false;
-      
+
       try {
-        console.log('🌍 [MESSAGE INPUT DEBUG] Selected language:', selectedLanguage);
-        console.log('🌍 [MESSAGE INPUT DEBUG] User message:', userMessage);
         response = await api.sendMessageStream(userMessage, conversationId, selectedLanguage, (chunk, isComplete, data) => {
           if (onStreamingMessage) {
             onStreamingMessage(chunk, isComplete, data);
           }
-        });
+        }, activeIntent);
         streamingSucceeded = true;
       } catch (streamingError) {
-        console.warn('Streaming failed, falling back to regular API:', streamingError);
-        console.log('🌍 [MESSAGE INPUT DEBUG] Fallback - Selected language:', selectedLanguage);
-        response = await api.sendMessage(userMessage, conversationId, selectedLanguage);
+        response = await api.sendMessage(userMessage, conversationId, selectedLanguage, null, activeIntent);
         streamingSucceeded = false;
       }
-      
+
       // Only add final response if streaming failed (to avoid duplicates)
       if (!streamingSucceeded && response && response.answer) {
         onMessageReceived({
@@ -124,7 +112,6 @@ const MessageInput = ({
         throw new Error('Invalid response format');
       }
     } catch (error) {
-      console.error('Error sending message:', error);
       onMessageReceived({
         text: "I apologize, but I'm experiencing technical difficulties. Please try again or contact CTDRU directly at +256-41-4230060 for immediate assistance.",
         isUser: false,
@@ -138,88 +125,101 @@ const MessageInput = ({
     }
   };
 
-  const quickActions = [
-    'Submit complaint',
-    'Report fraud',
-    'Check complaint status',
-    'Wrong MoMo transfer',
-  ];
+  const handleVoiceSend = useCallback(
+    (text, intent, audioMeta) => {
+      // Always forward — even when text is empty the audioMeta contains the
+      // audioUrl and a transcriptPromise that ChatInterface will await.
+      // The old `if (!text) return` guard was the root cause of the
+      // "audio disappears on Send" bug: it dropped the entire call before
+      // the transcript could resolve, so neither the bubble nor the agent
+      // query ever went through.
+      onSendTranscript?.(text, intent, audioMeta);
+    },
+    [onSendTranscript]
+  );
 
-  const handleQuickAction = (actionText) => {
-    setMessage(actionText);
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
-  };
+  const handleMicClick = useCallback(() => {
+    recorderRef.current?.startRecording();
+  }, []);
 
-  const canSend = message.trim() !== '' && !isLoading && !isStreaming;
+  const canSend = message.trim() !== '' && !busy;
+
+  const placeholder = activeTopicLabel
+    ? `Message about ${activeTopicLabel}…`
+    : 'Ask Wakili…';
 
   return (
     <Box sx={{ position: 'relative' }}>
-      <Fade in={!isLoading && !isStreaming && message === ''}>
-        <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1, mb: 1.5 }}>
-          {quickActions.map((text) => (
-            <Button
-              key={text}
-              size="small"
-              onClick={() => handleQuickAction(text)}
-              sx={{
-                borderRadius: 5,
-                textTransform: 'none',
-                fontSize: '0.8rem',
-                fontWeight: 400,
-                px: 1.5,
-                py: 0.4,
-                border: '1px solid rgba(11,31,58,0.14)',
-                color: tokens.navy,
-                backgroundColor: '#FFFFFF',
-                '&:hover': {
-                  backgroundColor: tokens.paper,
-                  borderColor: tokens.navyMid,
-                },
-              }}
-            >
-              {text}
-            </Button>
-          ))}
-        </Stack>
-      </Fade>
+      {/* VoiceRecorder stays mounted at a stable tree position — never unmounts */}
+      <VoiceRecorder
+        ref={recorderRef}
+        onSendTranscript={handleVoiceSend}
+        onPhaseChange={setVoicePhase}
+        activeIntent={activeIntent}
+        disabled={busy}
+      />
 
+      {/* Normal text form — hidden while voice recording or review is active */}
       <Paper
         component="form"
         onSubmit={handleSubmit}
         elevation={0}
         sx={{
-          p: '10px 12px',
-          display: 'flex',
+          p: '8px 8px 8px 10px',
+          display: voicePhase === 'idle' ? 'flex' : 'none',
           alignItems: 'flex-end',
-          borderRadius: 3.5,
+          gap: 1,
+          borderRadius: radii.card,
           backgroundColor: '#FFFFFF',
           border: '1px solid rgba(11,31,58,0.14)',
-          boxShadow: '0 2px 12px rgba(11,31,58,0.04)',
+          boxShadow: '0 1px 2px rgba(11,31,58,0.04), 0 12px 32px -18px rgba(11,31,58,0.35)',
+          transition: 'border-color .18s ease, box-shadow .18s ease',
           '&:focus-within': {
             borderColor: tokens.navyMid,
+            boxShadow: '0 1px 2px rgba(11,31,58,0.04), 0 0 0 3px rgba(184,134,11,0.14)',
           },
         }}
       >
-        <VoiceRecorder
-          onMessageReceived={onMessageReceived}
-          setIsLoading={setIsLoading}
-        />
+        {/* Mic button — triggers VoiceRecorder to enter recording phase */}
+        <IconButton
+          onClick={handleMicClick}
+          aria-label="Record a voice message"
+          disabled={busy}
+          sx={{
+            width: 38,
+            height: 38,
+            borderRadius: radii.circle,
+            color: busy ? 'rgba(11,31,58,0.2)' : tokens.navy,
+            border: '1px solid rgba(11,31,58,0.12)',
+            transition: 'all .15s ease',
+            '&:hover': {
+              borderColor: tokens.gold,
+              backgroundColor: 'rgba(184,134,11,0.06)',
+              color: tokens.gold,
+            },
+            '&:disabled': {
+              color: 'rgba(11,31,58,0.2)',
+              border: '1px solid rgba(11,31,58,0.06)',
+            },
+          }}
+        >
+          <MicIcon size={19} />
+        </IconButton>
 
         <InputBase
           sx={{
-            ml: 1.5,
+            ml: 0.5,
             flex: 1,
             fontSize: '0.95rem',
             fontWeight: 400,
             color: tokens.ink,
+            py: 0.75,
             '& textarea::placeholder, & input::placeholder': {
-              opacity: 0.55,
+              opacity: 0.6,
               color: tokens.muted,
             },
           }}
-          placeholder="Message Wakilibot…"
+          placeholder={placeholder}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={(e) => {
@@ -228,10 +228,11 @@ const MessageInput = ({
               handleSubmit(e);
             }
           }}
-          disabled={isLoading || isStreaming}
+          disabled={busy}
           inputRef={inputRef}
           multiline
-          maxRows={4}
+          maxRows={5}
+          inputProps={{ 'aria-label': 'Message to Wakilibot' }}
         />
 
         <IconButton
@@ -239,40 +240,46 @@ const MessageInput = ({
           aria-label="Send message"
           disabled={!canSend}
           sx={{
-            ml: 1,
-            width: 36,
-            height: 36,
-            backgroundColor: canSend ? tokens.navy : 'rgba(11,31,58,0.08)',
-            color: canSend ? '#FFFFFF' : 'rgba(11,31,58,0.35)',
-            borderRadius: '50%',
+            width: 38,
+            height: 38,
+            backgroundColor: canSend ? tokens.navy : 'rgba(11,31,58,0.07)',
+            color: canSend ? '#FFFFFF' : 'rgba(11,31,58,0.32)',
+            borderRadius: radii.circle,
+            transition: 'background-color .18s ease, transform .18s ease',
             '&:hover': {
-              backgroundColor: canSend ? tokens.navyMid : 'rgba(11,31,58,0.12)',
+              backgroundColor: canSend ? tokens.navyMid : 'rgba(11,31,58,0.1)',
+              transform: canSend ? 'translateY(-1px)' : 'none',
             },
             '&:disabled': {
-              backgroundColor: 'rgba(11,31,58,0.08)',
-              color: 'rgba(11,31,58,0.35)',
+              backgroundColor: 'rgba(11,31,58,0.07)',
+              color: 'rgba(11,31,58,0.32)',
             },
           }}
         >
-          {isLoading || isStreaming ? (
+          {busy ? (
             <CircularProgress size={18} color="inherit" />
           ) : (
-            <SendIcon sx={{ fontSize: 18 }} />
+            <SendIcon />
           )}
         </IconButton>
       </Paper>
 
-      <Typography
+      <Box
         sx={{
-          mt: 1.5,
-          textAlign: 'center',
-          color: tokens.muted,
-          fontSize: '0.72rem',
-          fontWeight: 400,
+          mt: 1,
+          display: voicePhase === 'idle' ? 'flex' : 'none',
+          justifyContent: 'space-between',
+          gap: 2,
+          px: 0.5,
         }}
       >
-        Wakilibot can make mistakes. Check important information when needed.
-      </Typography>
+        <Typography sx={{ color: tokens.muted, fontSize: '0.68rem' }}>
+          Enter sends · Shift + Enter starts a new line
+        </Typography>
+        <Typography sx={{ color: tokens.muted, fontSize: '0.68rem', display: { xs: 'none', sm: 'block' } }}>
+          Wakilibot can make mistakes. Check important information.
+        </Typography>
+      </Box>
     </Box>
   );
 };

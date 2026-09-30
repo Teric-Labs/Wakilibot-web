@@ -7,7 +7,7 @@ const testAPI = async () => {
     formData.append('query', 'Hello test');
     formData.append('user_id', 'test_user');
     
-    const response = await fetch('http://localhost:8000/agents/conversations', {
+    const response = await fetch('https://wakilibot-agent-0wm0.onrender.com/agents/conversations', {
       method: 'POST',
       body: formData
     });

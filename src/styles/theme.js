@@ -20,6 +20,20 @@ export const tokens = {
   chatBubbleUser: '#1E4D7B',
 };
 
+/**
+ * The workspace's corner language, so "how round is this box?" stops being decided per file.
+ *
+ * `card` is square: topic cards, the topic brief, the composer and the recording panel are
+ * flat panels on paper, which is what the brand reads as. `pill` is for labels - topic chips,
+ * the Listen control, the pinned topic name - and `circle` for buttons that carry a single
+ * glyph. Chat bubbles keep their own soft corner because a bubble is not a card.
+ */
+export const radii = {
+  card: 0,
+  pill: 999,
+  circle: '50%',
+};
+
 const baseTheme = createTheme({
   palette: {
     mode: 'light',
@@ -177,9 +191,12 @@ const baseTheme = createTheme({
         root: {
           '& .MuiOutlinedInput-root': {
             backgroundColor: tokens.paperElevated,
-            borderRadius: 12,
+            // Square, like the composer and every panel card - a pill-shaped input sitting inside a
+            // rectangular card is the tell of a bolted-on control.
+            borderRadius: radii.card,
             '& fieldset': {
               borderColor: tokens.line,
+              borderRadius: radii.card,
             },
             '&:hover fieldset': {
               borderColor: tokens.navyMid,
@@ -196,6 +213,22 @@ const baseTheme = createTheme({
       styleOverrides: {
         root: {
           backgroundImage: 'none',
+        },
+      },
+    },
+    // Labels are pills everywhere: topic chips, category filters, status chips.
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          borderRadius: radii.pill,
+        },
+      },
+    },
+    // Notices are part of a panel, not floating above it.
+    MuiAlert: {
+      styleOverrides: {
+        root: {
+          borderRadius: radii.card,
         },
       },
     },

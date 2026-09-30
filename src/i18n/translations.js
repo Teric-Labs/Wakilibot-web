@@ -1,0 +1,672 @@
+/**
+ * Wakilibot UI Translations
+ * Covers: English, Swahili, Luganda, Acholi, Ateso, Runyankole, Lusoga
+ */
+
+const translations = {
+  en: {
+    // Sidebar
+    sidebar: {
+      workspace: 'Workspace',
+      recent: 'Recent',
+      newEnquiry: 'New enquiry',
+      newEnquiryTooltip: 'Start a new enquiry',
+      askWakili: 'Ask Wakili',
+      history: 'History',
+      documents: 'Documents',
+      help: 'Help',
+      settings: 'Settings',
+      account: 'Account',
+      guest: 'Guest',
+      user: 'User',
+      signInToSave: 'Sign in to save',
+      collapseSidebar: 'Collapse sidebar',
+      expandSidebar: 'Expand sidebar',
+    },
+    // Chat header
+    chat: {
+      chooseTopic: 'Choose a topic',
+      chooseTopicSubtitle: 'Nothing is sent until you pick one',
+      askWakili: 'Ask Wakili',
+      freeChat: 'Free chat - the assistant works out the topic',
+      browseTopics: 'Browse topics',
+      language: 'Language',
+      signIn: 'Sign in',
+      guestMode: 'Guest mode — guidance is informational, not legal advice.',
+      createAccount: 'Create account',
+      exportConversation: 'Export conversation',
+      endGuestSession: 'End guest session',
+      signOut: 'Sign out',
+      scrollToLatest: 'Scroll to latest message',
+      conversationOptions: 'Conversation options',
+    },
+    // Welcome & greeting
+    welcome: {
+      text: "Karibu / Hello! I'm Wakilibot — the CTDRU assistant for banking, mobile money and credit disputes. Pick a topic to start, or describe what happened in your own words.",
+      ctdruHelp: 'CTDRU consumer help',
+      whatHelp: 'What do you need help with?',
+      pickTopicNote: 'Pick a topic and we take you straight to it — type it or say it, and nothing is filed until you say so.',
+      notSureWhich: 'Not sure which one?',
+      chatFreely: 'chat freely',
+      andDescribe: 'and describe it in your own words.',
+    },
+    // Topic brief
+    topicBrief: {
+      startWith: 'Start with',
+      everythingGoesHere: 'Everything you send now goes to this topic.',
+      changeTopic: 'Change topic',
+    },
+    // Topic header
+    topicHeader: {
+      changeTopic: 'Change topic',
+    },
+    // Typing / waiting
+    typing: {
+      thinking: 'Thinking…',
+    },
+    // Error messages
+    errors: {
+      cannotReach: 'Sorry, I could not reach the assistant. Please try again.',
+      ttsError: 'Audio unavailable',
+    },
+    // Language settings
+    languageSettings: {
+      preferredLanguage: 'Preferred language',
+      languageUpdated: 'Language updated to',
+      description: 'You can still describe issues in other Ugandan languages during chat. This setting guides default replies.',
+    },
+    // Help panel
+    help: {
+      title: 'Help & Support',
+      subtitle: 'How can we assist you?',
+    },
+    // Account panel
+    account: {
+      title: 'My Account',
+    },
+    // Archive / Documents
+    archive: {
+      title: 'Documents',
+    },
+    // History
+    history: {
+      title: 'Conversation History',
+      conversation: 'Conversation',
+    },
+    // Settings panel
+    settings: {
+      title: 'Settings',
+    },
+    // VoiceNoteBubble
+    voice: {
+      preparingAudio: 'Preparing audio response…',
+      audioUnavailable: 'Audio unavailable',
+      tapToListen: 'Tap to listen',
+    },
+    // MessageInput
+    input: {
+      placeholder: 'Describe your issue…',
+      sendMessage: 'Send message',
+      startRecording: 'Start voice recording',
+    },
+    // System info dialog
+    systemInfo: {
+      title: 'System Status',
+      agentService: 'Agent Service',
+      mainService: 'Main Service',
+      healthy: 'Healthy',
+      warming: 'Warming up…',
+      unavailable: 'Unavailable',
+      close: 'Close',
+    },
+  },
+
+  sw: {
+    sidebar: {
+      workspace: 'Eneo la Kazi',
+      recent: 'Hivi Karibuni',
+      newEnquiry: 'Swali jipya',
+      newEnquiryTooltip: 'Anza swali jipya',
+      askWakili: 'Uliza Wakili',
+      history: 'Historia',
+      documents: 'Hati',
+      help: 'Msaada',
+      settings: 'Mipangilio',
+      account: 'Akaunti',
+      guest: 'Mgeni',
+      user: 'Mtumiaji',
+      signInToSave: 'Ingia kuhifadhi',
+      collapseSidebar: 'Funga upande',
+      expandSidebar: 'Fungua upande',
+    },
+    chat: {
+      chooseTopic: 'Chagua mada',
+      chooseTopicSubtitle: 'Hakuna kinachopelekwa mpaka uchague mada',
+      askWakili: 'Uliza Wakili',
+      freeChat: 'Mazungumzo huru - msaidizi ataamua mada',
+      browseTopics: 'Angalia mada',
+      language: 'Lugha',
+      signIn: 'Ingia',
+      guestMode: 'Hali ya mgeni — maelekezo ni ya habari, si ushauri wa kisheria.',
+      createAccount: 'Fungua akaunti',
+      exportConversation: 'Hamisha mazungumzo',
+      endGuestSession: 'Maliza kikao cha mgeni',
+      signOut: 'Toka',
+      scrollToLatest: 'Nenda chini zaidi',
+      conversationOptions: 'Chaguzi za mazungumzo',
+    },
+    welcome: {
+      text: 'Karibu! Mimi ni Wakilibot — msaidizi wa CTDRU kwa masuala ya benki, pesa ya simu na madeni. Chagua mada kuanza, au eleza kilichotokea kwa maneno yako.',
+      ctdruHelp: 'Msaada wa CTDRU',
+      whatHelp: 'Unahitaji msaada gani?',
+      pickTopicNote: 'Chagua mada na tutakupeleka moja kwa moja — andika au sema, na hakuna kinachofiliwa mpaka useme.',
+      notSureWhich: 'Hujui ni ipi?',
+      chatFreely: 'zungumza huru',
+      andDescribe: 'na eleza kwa maneno yako.',
+    },
+    topicBrief: {
+      startWith: 'Anza na',
+      everythingGoesHere: 'Kila unachopeleka sasa kinaenda kwenye mada hii.',
+      changeTopic: 'Badilisha mada',
+    },
+    topicHeader: {
+      changeTopic: 'Badilisha mada',
+    },
+    typing: {
+      thinking: 'Inafikiri…',
+    },
+    errors: {
+      cannotReach: 'Samahani, sikuweza kufikia msaidizi. Tafadhali jaribu tena.',
+      ttsError: 'Sauti haipatikani',
+    },
+    languageSettings: {
+      preferredLanguage: 'Lugha unayopendelea',
+      languageUpdated: 'Lugha imebadilishwa kuwa',
+      description: 'Bado unaweza kueleza matatizo kwa lugha nyingine za Uganda wakati wa mazungumzo. Mpangilio huu unaongoza majibu ya kawaida.',
+    },
+    help: { title: 'Msaada', subtitle: 'Tunawezaje kukusaidia?' },
+    account: { title: 'Akaunti Yangu' },
+    archive: { title: 'Hati' },
+    history: { title: 'Historia ya Mazungumzo', conversation: 'Mazungumzo' },
+    settings: { title: 'Mipangilio' },
+    voice: {
+      preparingAudio: 'Inaandaa jibu la sauti…',
+      audioUnavailable: 'Sauti haipatikani',
+      tapToListen: 'Gonga kusikiliza',
+    },
+    input: {
+      placeholder: 'Eleza tatizo lako…',
+      sendMessage: 'Tuma ujumbe',
+      startRecording: 'Anza kurekodi sauti',
+    },
+    systemInfo: {
+      title: 'Hali ya Mfumo',
+      agentService: 'Huduma ya Wakala',
+      mainService: 'Huduma Kuu',
+      healthy: 'Inafanya kazi',
+      warming: 'Inaanzisha…',
+      unavailable: 'Haipatikani',
+      close: 'Funga',
+    },
+  },
+
+  lg: {
+    sidebar: {
+      workspace: 'Ekifo ky\'Okukola',
+      recent: 'Ebiseera Ebikuweeru',
+      newEnquiry: 'Ekibuuzo ekipya',
+      newEnquiryTooltip: 'Tandika ekibuuzo ekipya',
+      askWakili: 'Buuza Wakili',
+      history: 'Ebyafaayo',
+      documents: 'Empapula',
+      help: 'Obuyambi',
+      settings: 'Entegeka',
+      account: 'Akawunti',
+      guest: 'Mugenyi',
+      user: 'Omukozesa',
+      signInToSave: 'Yingira okubika',
+      collapseSidebar: 'Zinga oludda',
+      expandSidebar: 'Ggalawo oludda',
+    },
+    chat: {
+      chooseTopic: 'Londa ekigatta',
+      chooseTopicSubtitle: 'Tewatumibwa kintu nga tonaddilonda',
+      askWakili: 'Buuza Wakili',
+      freeChat: 'Okwogera obwereere — omuyambi alondawo ekigatta',
+      browseTopics: 'Laba ebigatta',
+      language: 'Olulimi',
+      signIn: 'Yingira',
+      guestMode: 'Enkola ya mugenyi — obulabirizi bwokka, si okubuulirira kwa amateeka.',
+      createAccount: 'Zza akawunti',
+      exportConversation: 'Sumulula okuganira',
+      endGuestSession: 'Maliriza ekiseera kya mugenyi',
+      signOut: 'Fuluma',
+      scrollToLatest: 'Ddayo wansi',
+      conversationOptions: 'Endagiriro z\'okuganira',
+    },
+    welcome: {
+      text: 'Tukusanyukira! Nze Wakilibot — omuyambi wa CTDRU ku bizibu by\'ebbanka, ssente za simu n\'amawaliwali. Londa ekigatta okutandika, oba longoosa ebyatuuka mu bigambo byo.',
+      ctdruHelp: 'Obuyambi bwa CTDRU',
+      whatHelp: 'Oyagala obuyambi bwa ki?',
+      pickTopicNote: 'Londa ekigatta natukuyingiza obuteerawooko — wandika oba boogera, era tewagolokozebwa kintu okutuusa lw\'ogamba.',
+      notSureWhich: 'Tosobola kulonda?',
+      chatFreely: 'ganira obwereere',
+      andDescribe: 'era longoosa mu bigambo byo.',
+    },
+    topicBrief: {
+      startWith: 'Tandika ne',
+      everythingGoesHere: 'Buli kigenda mu kigatta kino.',
+      changeTopic: 'Kyusa ekigatta',
+    },
+    topicHeader: {
+      changeTopic: 'Kyusa ekigatta',
+    },
+    typing: {
+      thinking: 'Efumiitiriza…',
+    },
+    errors: {
+      cannotReach: 'Nsonyiwa, siyinzika kukufikira omuyambi. Gezaako nate.',
+      ttsError: 'Eddoboozi teribaako',
+    },
+    languageSettings: {
+      preferredLanguage: 'Olulimi lwo ow\'okusinga',
+      languageUpdated: 'Olulimi lukyusiddwa okutuuka',
+      description: 'Osobola okuwaayo ebibuuzo mu ndimi endala z\'Uganda mu kuganira. Entegeka eno ekulagirira n\'okuddamu kw\'omusingi.',
+    },
+    help: { title: 'Obuyambi', subtitle: 'Tweyambise atya?' },
+    account: { title: 'Akawunti Yange' },
+    archive: { title: 'Empapula' },
+    history: { title: 'Ebyafaayo by\'Okuganira', conversation: 'Okuganira' },
+    settings: { title: 'Entegeka' },
+    voice: {
+      preparingAudio: 'Tegeka okuddamu kw\'eddoboozi…',
+      audioUnavailable: 'Eddoboozi teribaako',
+      tapToListen: 'Nyiga okuwulira',
+    },
+    input: {
+      placeholder: 'Longoosa ekizibu kyo…',
+      sendMessage: 'Tuma obubaka',
+      startRecording: 'Tandika okukola eddoboozi',
+    },
+    systemInfo: {
+      title: 'Embeera y\'Enkola',
+      agentService: 'Omuyambi wa Serikali',
+      mainService: 'Serikali Enkulu',
+      healthy: 'Ekola bulungi',
+      warming: 'Etandika…',
+      unavailable: 'Teribaako',
+      close: 'Ggalawo',
+    },
+  },
+
+  ac: {
+    sidebar: {
+      workspace: 'Kabedo me Tic',
+      recent: 'Macon Nia',
+      newEnquiry: 'Penyo manyen',
+      newEnquiryTooltip: 'Cak penyo manyen',
+      askWakili: 'Penyi Wakili',
+      history: 'Gin ma otimme',
+      documents: 'Waraga',
+      help: 'Kony',
+      settings: 'Ter',
+      account: 'Akaunti',
+      guest: 'Welo',
+      user: 'Dano ma tiyo',
+      signInToSave: 'Donyo me kano',
+      collapseSidebar: 'Gor ŋet',
+      expandSidebar: 'Yab ŋet',
+    },
+    chat: {
+      chooseTopic: 'Yer lok',
+      chooseTopicSubtitle: 'Pe gioro gicwalo nyaka iyer lok',
+      askWakili: 'Penyi Wakili',
+      freeChat: 'Lok pe ber — lakonyi bimiyo lok',
+      browseTopics: 'Neno lok',
+      language: 'Leb',
+      signIn: 'Donyo',
+      guestMode: 'Dul pa welo — pwonyo tye pi ngec, pe cik pa lo.',
+      createAccount: 'Cak akaunti',
+      exportConversation: 'Kwaliny lok',
+      endGuestSession: 'Tum kare pa welo',
+      signOut: 'Kat woko',
+      scrollToLatest: 'Cit piny',
+      conversationOptions: 'Yic me lok',
+    },
+    welcome: {
+      text: 'Wamoti! An Wakilibot — lakonyi pa CTDRU pi lok me bank, mony me simu ki jami ma gimiyo. Yer lok me cako, onyo lonyo gin ma otimme ki lok mamegi.',
+      ctdruHelp: 'Kony me CTDRU',
+      whatHelp: 'Imito kony me ŋo?',
+      pickTopicNote: 'Yer lok waciti kwede oyot — coyo onyo waci, pe gioro gikano nyaka icamo.',
+      notSureWhich: 'Pe iŋeyo mene?',
+      chatFreely: 'lok maber',
+      andDescribe: 'ki lonyo ki lok mamegi.',
+    },
+    topicBrief: {
+      startWith: 'Cak ki',
+      everythingGoesHere: 'Gin ducu ma icwalo kombedi tye ka cito i lok man.',
+      changeTopic: 'Lok lokke',
+    },
+    topicHeader: {
+      changeTopic: 'Lok lokke',
+    },
+    typing: {
+      thinking: 'Tye ka paro…',
+    },
+    errors: {
+      cannotReach: 'Koŋo, pe donyo ibe bot lakonyi. Tim doki.',
+      ttsError: 'Dwon pe tye',
+    },
+    languageSettings: {
+      preferredLanguage: 'Leb ma imaro',
+      languageUpdated: 'Leb oloyo cito i',
+      description: 'Itwero lonyo lok ki leb mukene me Uganda i lok. Ter man miyo ŋat ma loko.',
+    },
+    help: { title: 'Kony', subtitle: 'Wek wakony niŋ?' },
+    account: { title: 'Akaunti Mera' },
+    archive: { title: 'Waraga' },
+    history: { title: 'Gin ma otimme me Lok', conversation: 'Lok' },
+    settings: { title: 'Ter' },
+    voice: {
+      preparingAudio: 'Yubo loko ki dwon…',
+      audioUnavailable: 'Dwon pe tye',
+      tapToListen: 'Ŋet me winyo',
+    },
+    input: {
+      placeholder: 'Lonyo lok mamegi…',
+      sendMessage: 'Cwalo lok',
+      startRecording: 'Cak kano dwon',
+    },
+    systemInfo: {
+      title: 'Ber pa Cak',
+      agentService: 'Tic pa Lakonyi',
+      mainService: 'Tic Madwong',
+      healthy: 'Tye maber',
+      warming: 'Tye ka cako…',
+      unavailable: 'Pe tye',
+      close: 'Lor',
+    },
+  },
+
+  at: {
+    sidebar: {
+      workspace: 'Ere me Atipe',
+      recent: 'Eong osin',
+      newEnquiry: 'Apeny apiru',
+      newEnquiryTooltip: 'Kratar apeny apiru',
+      askWakili: 'Apeny Wakili',
+      history: 'Emoninit',
+      documents: 'Igurukitin',
+      help: 'Ikoku',
+      settings: 'Ikolobokin',
+      account: 'Akaunti',
+      guest: 'Emoit',
+      user: 'Aimukar',
+      signInToSave: 'Ibor me ikokosi',
+      collapseSidebar: 'Ibwor ŋeet',
+      expandSidebar: 'Igar ŋeet',
+    },
+    chat: {
+      chooseTopic: 'Iyong eong',
+      chooseTopicSubtitle: 'Ere aberi akamusian akimor eong',
+      askWakili: 'Apeny Wakili',
+      freeChat: 'Eong akeresi — aikonu aimukar eong',
+      browseTopics: 'Idwe eong',
+      language: 'Eitesio',
+      signIn: 'Ibor',
+      guestMode: 'Ekinos pa emoit — eong ateker, ere amun ai aikuiyei.',
+      createAccount: 'Kratar akaunti',
+      exportConversation: 'Ituret eong',
+      endGuestSession: 'Ipos ere pa emoit',
+      signOut: 'Ikar',
+      scrollToLatest: 'Cit piny',
+      conversationOptions: 'Ikibor me eong',
+    },
+    welcome: {
+      text: 'Ejore! An Wakilibot — aikonu pa CTDRU pi aimukar me benki, moni me simu na idok. Iyong eong me kratar, ere lonyo gin ma otimme ki eong iningini.',
+      ctdruHelp: 'Ikoku me CTDRU',
+      whatHelp: 'Imito ikoku me ŋo?',
+      pickTopicNote: 'Iyong eong waciti — ituret ere iwac, ere aberi akamusian akimor.',
+      notSureWhich: 'Ere iŋeyo mene?',
+      chatFreely: 'eong akeresi',
+      andDescribe: 'na lonyo ki eong iningini.',
+    },
+    topicBrief: {
+      startWith: 'Kratar ki',
+      everythingGoesHere: 'Gin ducu ma icwalo tye ka cito i eong man.',
+      changeTopic: 'Ikyus eong',
+    },
+    topicHeader: {
+      changeTopic: 'Ikyus eong',
+    },
+    typing: {
+      thinking: 'Iparo…',
+    },
+    errors: {
+      cannotReach: 'Koŋo, ere iruŋ aikonu. Kratar doki.',
+      ttsError: 'Edwon ere tye',
+    },
+    languageSettings: {
+      preferredLanguage: 'Eitesio imaro',
+      languageUpdated: 'Eitesio iloyo cito i',
+      description: 'Ituret eong ki eitesio akeduru me Uganda i eong. Ikolobokin man miyo ŋat ma loko.',
+    },
+    help: { title: 'Ikoku', subtitle: 'Wakony niŋ?' },
+    account: { title: 'Akaunti Mera' },
+    archive: { title: 'Igurukitin' },
+    history: { title: 'Emoninit me Eong', conversation: 'Eong' },
+    settings: { title: 'Ikolobokin' },
+    voice: {
+      preparingAudio: 'Yubo edwon…',
+      audioUnavailable: 'Edwon ere tye',
+      tapToListen: 'Ŋet me winyo',
+    },
+    input: {
+      placeholder: 'Lonyo gin ma otimme ki eong iningini…',
+      sendMessage: 'Cwalo eong',
+      startRecording: 'Kratar ikano edwon',
+    },
+    systemInfo: {
+      title: 'Ber pa Cak',
+      agentService: 'Tic pa Aikonu',
+      mainService: 'Tic Madwong',
+      healthy: 'Tye maber',
+      warming: 'Tye ka cako…',
+      unavailable: 'Ere tye',
+      close: 'Ibwor',
+    },
+  },
+
+  nyn: {
+    sidebar: {
+      workspace: 'Oho hw\'Orukorwa',
+      recent: 'Eby\'ahobuhobu',
+      newEnquiry: 'Okubuuza okusha',
+      newEnquiryTooltip: 'Tandika okubuuza okusha',
+      askWakili: 'Buuza Wakili',
+      history: 'Ebyahare',
+      documents: 'Empapura',
+      help: 'Obujuni',
+      settings: 'Entegeka',
+      account: 'Akawunti',
+      guest: 'Omugenyi',
+      user: 'Omukozesa',
+      signInToSave: 'Yingira kuhika',
+      collapseSidebar: 'Zinga',
+      expandSidebar: 'Ggula',
+    },
+    chat: {
+      chooseTopic: 'Hanga ekiraka',
+      chooseTopicSubtitle: 'Nta kigatumwa okutuusa othanze ekiraka',
+      askWakili: 'Buuza Wakili',
+      freeChat: 'Okugamba obwereere — omujuni azironda ekiraka',
+      browseTopics: 'Raba ebiraka',
+      language: 'Orulimi',
+      signIn: 'Yingira',
+      guestMode: 'Omugenderezo gw\'omugenyi — obujuni bwokka, si kukebera amateeka.',
+      createAccount: 'Zza akawunti',
+      exportConversation: 'Sumulula okugamba',
+      endGuestSession: 'Malirira omugenyi',
+      signOut: 'Fuuma',
+      scrollToLatest: 'Genda pasi',
+      conversationOptions: 'Endagiriro z\'okugamba',
+    },
+    welcome: {
+      text: 'Murakaza neza! Ndi Wakilibot — omujuni wa CTDRU ku bizibu by\'ebbanka, ssente za simu n\'amawaliwali. Hanga ekiraka kutandika, oba longoosa ebyahitire mu magambo gawe.',
+      ctdruHelp: 'Obujuni bwa CTDRU',
+      whatHelp: 'Orikukorwa ki?',
+      pickTopicNote: 'Hanga ekiraka nitukuyingiza obuteerawooko — wandika oba boogera, nta kigolokozebwa okutuusa oribwira.',
+      notSureWhich: 'Otayeeyeho?',
+      chatFreely: 'gamba obwereere',
+      andDescribe: 'nalongoosa mu magambo gawe.',
+    },
+    topicBrief: {
+      startWith: 'Tandika na',
+      everythingGoesHere: 'Buri kigenda mu kiraka kino.',
+      changeTopic: 'Hindura ekiraka',
+    },
+    topicHeader: {
+      changeTopic: 'Hindura ekiraka',
+    },
+    typing: {
+      thinking: 'Efikirira…',
+    },
+    errors: {
+      cannotReach: 'Nkwatire buguzi, okwegamba omujuni kwangenze. Gezaaho nate.',
+      ttsError: 'Eddoboozi teribaawo',
+    },
+    languageSettings: {
+      preferredLanguage: 'Orulimi rwowe',
+      languageUpdated: 'Orulimi rwahindurwa okutuuka',
+      description: 'Osobola okuwaayo ebibuuzo mu ndimi endala z\'Uganda mu kugamba. Entegeka eno ekulagirira n\'okuddamu kw\'omusingi.',
+    },
+    help: { title: 'Obujuni', subtitle: 'Twejunire nihe?' },
+    account: { title: 'Akawunti Yange' },
+    archive: { title: 'Empapura' },
+    history: { title: 'Ebyahare by\'Okugamba', conversation: 'Okugamba' },
+    settings: { title: 'Entegeka' },
+    voice: {
+      preparingAudio: 'Tegekera eddoboozi…',
+      audioUnavailable: 'Eddoboozi teribaawo',
+      tapToListen: 'Nyiga kutwara',
+    },
+    input: {
+      placeholder: 'Longoosa ekizibu kyawe…',
+      sendMessage: 'Tuma obubaka',
+      startRecording: 'Tandika kurekoda',
+    },
+    systemInfo: {
+      title: 'Embeera y\'Enkola',
+      agentService: 'Serikali y\'Omujuni',
+      mainService: 'Serikali Enkulu',
+      healthy: 'Ekora bulungi',
+      warming: 'Etandika…',
+      unavailable: 'Teribaawo',
+      close: 'Ggalawo',
+    },
+  },
+
+  xog: {
+    sidebar: {
+      workspace: 'Ekifo ky\'Okukola',
+      recent: 'Ebiseera Ebikulya',
+      newEnquiry: 'Ekibuuzo ekipya',
+      newEnquiryTooltip: 'Tandika ekibuuzo ekipya',
+      askWakili: 'Buuza Wakili',
+      history: 'Ebyafayo',
+      documents: 'Empapula',
+      help: 'Obuyambi',
+      settings: 'Entegeka',
+      account: 'Akawunti',
+      guest: 'Mugenyi',
+      user: 'Omukozesa',
+      signInToSave: 'Yingira okubika',
+      collapseSidebar: 'Zinga',
+      expandSidebar: 'Ggalawo',
+    },
+    chat: {
+      chooseTopic: 'Londa ekigatta',
+      chooseTopicSubtitle: 'Tewatumibwa kintu nga tonaddilonda',
+      askWakili: 'Buuza Wakili',
+      freeChat: 'Okwogera obwereere — omuyambi alondawo ekigatta',
+      browseTopics: 'Laba ebigatta',
+      language: 'Olulimi',
+      signIn: 'Yingira',
+      guestMode: 'Enkola ya mugenyi — obulabirizi bwokka, si okubuulirira kwa amateeka.',
+      createAccount: 'Zza akawunti',
+      exportConversation: 'Sumulula okuganira',
+      endGuestSession: 'Maliriza ekiseera kya mugenyi',
+      signOut: 'Fuluma',
+      scrollToLatest: 'Ddayo wansi',
+      conversationOptions: 'Endagiriro z\'okuganira',
+    },
+    welcome: {
+      text: 'Tukusanyukira! Nze Wakilibot — omuyambi wa CTDRU ku bizibu by\'ebbanka, ssente za simu n\'amawaliwali. Londa ekigatta okutandika, oba longoosa ebyatuuka mu bigambo byo.',
+      ctdruHelp: 'Obuyambi bwa CTDRU',
+      whatHelp: 'Oyagala obuyambi bwa ki?',
+      pickTopicNote: 'Londa ekigatta natukuyingiza obuteerawooko — wandika oba boogera, era tewagolokozebwa kintu okutuusa lw\'ogamba.',
+      notSureWhich: 'Tosobola kulonda?',
+      chatFreely: 'ganira obwereere',
+      andDescribe: 'era longoosa mu bigambo byo.',
+    },
+    topicBrief: {
+      startWith: 'Tandika ne',
+      everythingGoesHere: 'Buli kigenda mu kigatta kino.',
+      changeTopic: 'Kyusa ekigatta',
+    },
+    topicHeader: {
+      changeTopic: 'Kyusa ekigatta',
+    },
+    typing: {
+      thinking: 'Efumiitiriza…',
+    },
+    errors: {
+      cannotReach: 'Nsonyiwa, siyinzika kukufikira omuyambi. Gezaako nate.',
+      ttsError: 'Eddoboozi teribaako',
+    },
+    languageSettings: {
+      preferredLanguage: 'Olulimi lwo ow\'okusinga',
+      languageUpdated: 'Olulimi lukyusiddwa okutuuka',
+      description: 'Osobola okuwaayo ebibuuzo mu ndimi endala z\'Uganda mu kuganira. Entegeka eno ekulagirira n\'okuddamu kw\'omusingi.',
+    },
+    help: { title: 'Obuyambi', subtitle: 'Tweyambise atya?' },
+    account: { title: 'Akawunti Yange' },
+    archive: { title: 'Empapula' },
+    history: { title: 'Ebyafayo by\'Okuganira', conversation: 'Okuganira' },
+    settings: { title: 'Entegeka' },
+    voice: {
+      preparingAudio: 'Tegeka okuddamu kw\'eddoboozi…',
+      audioUnavailable: 'Eddoboozi teribaako',
+      tapToListen: 'Nyiga okuwulira',
+    },
+    input: {
+      placeholder: 'Longoosa ekizibu kyo…',
+      sendMessage: 'Tuma obubaka',
+      startRecording: 'Tandika okukola eddoboozi',
+    },
+    systemInfo: {
+      title: 'Embeera y\'Enkola',
+      agentService: 'Omuyambi wa Serikali',
+      mainService: 'Serikali Enkulu',
+      healthy: 'Ekola bulungi',
+      warming: 'Etandika…',
+      unavailable: 'Teribaako',
+      close: 'Ggalawo',
+    },
+  },
+};
+
+/**
+ * Get a translation string. Falls back to English if the key/language is missing.
+ * @param {string} lang - language code (e.g. 'sw')
+ * @param {string} section - top-level section (e.g. 'sidebar')
+ * @param {string} key - key within section (e.g. 'workspace')
+ * @returns {string}
+ */
+export const t = (lang, section, key) => {
+  const langData = translations[lang] || translations.en;
+  const sectionData = langData[section] || translations.en[section] || {};
+  return sectionData[key] ?? translations.en[section]?.[key] ?? key;
+};
+
+export default translations;

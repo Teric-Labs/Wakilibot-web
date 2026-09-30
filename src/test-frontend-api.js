@@ -7,7 +7,7 @@ const testFrontendAPI = async () => {
   try {
     // Test 1: Health Check
     console.log('1️⃣ Testing Health Endpoint...');
-    const healthResponse = await fetch('http://localhost:8000/health');
+    const healthResponse = await fetch('https://wakilibot-agent-0wm0.onrender.com/health');
     const healthData = await healthResponse.json();
     console.log('✅ Health Status:', healthData.status);
     console.log('📊 Version:', healthData.version);
@@ -19,7 +19,7 @@ const testFrontendAPI = async () => {
     formData.append('query', 'Hello from frontend test');
     formData.append('user_id', 'frontend_test_user');
     
-    const apiResponse = await fetch('http://localhost:8000/agents/conversations', {
+    const apiResponse = await fetch('https://wakilibot-agent-0wm0.onrender.com/agents/conversations', {
       method: 'POST',
       body: formData
     });
@@ -42,7 +42,7 @@ const testFrontendAPI = async () => {
   } catch (error) {
     console.error('❌ Test failed:', error);
     console.log('\n🔧 Troubleshooting:');
-    console.log('1. Make sure the customAgent backend is running on port 8000');
+    console.log('1. Make sure the customAgent backend is running at https://wakilibot-agent-0wm0.onrender.com');
     console.log('2. Check browser console for CORS errors');
     console.log('3. Verify the API_BASE_URL is correct');
   }

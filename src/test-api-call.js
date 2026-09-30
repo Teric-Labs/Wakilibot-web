@@ -14,7 +14,7 @@ const testApiCall = async () => {
   }
   
   try {
-    const response = await fetch('http://localhost:8001/agents/conversations', {
+    const response = await fetch('https://wakilibot-agent-0wm0.onrender.com/agents/conversations', {
       method: 'POST',
       body: formData
     });
