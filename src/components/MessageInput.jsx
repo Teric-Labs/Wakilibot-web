@@ -113,7 +113,7 @@ const MessageInput = ({
       }
     } catch (error) {
       onMessageReceived({
-        text: "I apologize, but I'm experiencing technical difficulties. Please try again or contact CTDRU directly at +256-41-4230060 for immediate assistance.",
+        text: "I apologize, but I'm experiencing technical difficulties. Please try again or contact CTDRU directly at +256 760 345 027 or +256 784 101 593 for immediate assistance.",
         isUser: false,
         timestamp: new Date().toLocaleTimeString(),
         isError: true

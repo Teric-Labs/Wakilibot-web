@@ -133,12 +133,21 @@ const Help = ({ onFileComplaint, onReportFraud }) => {
         glyph={PhoneIcon}
         title="Need a person?"
         meta="CTDRU consumer line"
-        description="If you would rather speak to someone, or your matter is urgent, the directorate's line and email are here."
+        description="If you would rather speak to someone, or your matter is urgent, the directorate's lines and email are here."
         footer={
           <Stack spacing={0.75}>
             <Box
+              sx={{
+                color: tokens.muted,
+                fontSize: '0.85rem',
+                lineHeight: 1.5,
+              }}
+            >
+              Plot 29-37 Ntinda Road, Kampala
+            </Box>
+            <Box
               component="a"
-              href="tel:+256414230060"
+              href="tel:+256760345027"
               sx={{
                 display: 'flex',
                 alignItems: 'center',
@@ -151,11 +160,28 @@ const Help = ({ onFileComplaint, onReportFraud }) => {
               }}
             >
               <PhoneIcon size={14} />
-              +256 41 423 0060
+              +256 760 345 027
             </Box>
             <Box
               component="a"
-              href="mailto:ctdru@bou.or.ug"
+              href="tel:+256784101593"
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                color: tokens.navy,
+                fontSize: '0.9rem',
+                fontWeight: 600,
+                textDecoration: 'none',
+                '&:hover': { textDecoration: 'underline' },
+              }}
+            >
+              <PhoneIcon size={14} />
+              +256 784 101 593
+            </Box>
+            <Box
+              component="a"
+              href="mailto:hello@ctdrug.org"
               sx={{
                 display: 'flex',
                 alignItems: 'center',
@@ -168,7 +194,7 @@ const Help = ({ onFileComplaint, onReportFraud }) => {
               }}
             >
               <EmailIcon size={14} />
-              ctdru@bou.or.ug
+              hello@ctdrug.org
             </Box>
           </Stack>
         }

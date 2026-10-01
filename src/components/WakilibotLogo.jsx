@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Avatar } from '@mui/material';
-import { BrandMarkIcon } from './icons';
 import { tokens } from '../styles/theme';
+import ctdruLogo from '../assets/logo/cropped-CTDR-U-Logo-1-150x150.png';
 
 const WakilibotLogo = ({
   size = 44,
@@ -48,16 +48,20 @@ const WakilibotLogo = ({
       }}
     >
       <Avatar
+        src={ctdruLogo}
+        alt="CTDRU"
         sx={{
           width: size,
           height: size,
-          bgcolor: tokens.navy,
-          background: `linear-gradient(145deg, ${tokens.navy} 0%, ${tokens.navyMid} 100%)`,
-          boxShadow: '0 6px 18px rgba(11, 31, 58, 0.22)',
+          bgcolor: '#FFFFFF',
+          boxShadow: inverted
+            ? '0 4px 14px rgba(0, 0, 0, 0.28)'
+            : '0 6px 18px rgba(11, 31, 58, 0.18)',
+          '& .MuiAvatar-img': {
+            objectFit: 'cover',
+          },
         }}
-      >
-        <BrandMarkIcon size={size * 0.48} color={tokens.goldSoft} />
-      </Avatar>
+      />
       {showText && (
         <Box sx={{ display: 'flex', flexDirection: 'column', lineHeight: 1.05 }}>
           <Box

@@ -1,8 +1,35 @@
 import React from 'react';
-import { Box, Typography, Button, Container, Stack } from '@mui/material';
+import { Box, Typography, Button, Container, Stack, Link } from '@mui/material';
 import TopNav from './TopNav';
 import ChannelAccess from './ChannelAccess';
+import WakilibotLogo from './WakilibotLogo';
 import { tokens } from '../styles/theme';
+
+const footerLinkSx = {
+  color: 'rgba(255,255,255,0.72)',
+  textDecoration: 'none',
+  fontSize: '0.95rem',
+  fontWeight: 500,
+  lineHeight: 1.5,
+  transition: 'color 0.2s ease',
+  '&:hover': { color: '#FFFFFF' },
+};
+
+const FooterLabel = ({ children }) => (
+  <Typography
+    component="p"
+    sx={{
+      fontSize: '0.68rem',
+      fontWeight: 700,
+      letterSpacing: '0.14em',
+      textTransform: 'uppercase',
+      color: tokens.goldSoft,
+      mb: 1.25,
+    }}
+  >
+    {children}
+  </Typography>
+);
 
 const asset = (name) => `${process.env.PUBLIC_URL || ''}/topics/${name}`;
 
@@ -468,27 +495,157 @@ const LandingPage = ({
       <Box
         component="footer"
         sx={{
-          py: 3,
-          borderTop: `1px solid ${tokens.line}`,
-          background: tokens.paper,
+          position: 'relative',
+          color: '#FFFFFF',
+          background: `
+            radial-gradient(120% 90% at 0% 0%, rgba(212,168,75,0.12) 0%, transparent 42%),
+            linear-gradient(165deg, ${tokens.navy} 0%, #081628 55%, #06101c 100%)
+          `,
+          overflow: 'hidden',
         }}
       >
-        <Container
-          maxWidth="lg"
+        <Box
+          aria-hidden
           sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: 2,
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 2,
+            background: `linear-gradient(90deg, transparent 0%, ${tokens.gold} 28%, ${tokens.goldSoft} 50%, ${tokens.gold} 72%, transparent 100%)`,
           }}
-        >
-          <Typography sx={{ color: tokens.muted, fontSize: '0.9rem' }}>
-            © {new Date().getFullYear()} Wakilibot · CTDRU
-          </Typography>
-          <Button onClick={onAboutUs} sx={{ color: tokens.muted, px: 0 }}>
-            About CTDRU
-          </Button>
+        />
+
+        <Container maxWidth="lg" sx={{ position: 'relative', pt: { xs: 6, md: 8 }, pb: { xs: 4, md: 5 } }}>
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', sm: '1.2fr 1fr 1fr', md: '1.4fr 1fr 1fr 0.9fr' },
+              gap: { xs: 4.5, md: 5 },
+              alignItems: 'start',
+            }}
+          >
+            <Box sx={{ maxWidth: 320 }}>
+              <WakilibotLogo size={44} showText inverted onClick={onHome} />
+              <Typography
+                sx={{
+                  mt: 2.25,
+                  color: 'rgba(255,255,255,0.68)',
+                  fontSize: '0.95rem',
+                  lineHeight: 1.65,
+                }}
+              >
+                CTDRU’s assistant for filing complaints and reporting fraud across banking,
+                mobile money, and credit.
+              </Typography>
+            </Box>
+
+            <Box>
+              <FooterLabel>Visit</FooterLabel>
+              <Typography sx={{ ...footerLinkSx, display: 'block', maxWidth: 220 }}>
+                Plot 29-37 Ntinda Road
+                <br />
+                Kampala, Uganda
+              </Typography>
+            </Box>
+
+            <Box>
+              <FooterLabel>Contact</FooterLabel>
+              <Stack spacing={1}>
+                <Link href="tel:+256760345027" sx={footerLinkSx}>
+                  +256 760 345 027
+                </Link>
+                <Link href="tel:+256784101593" sx={footerLinkSx}>
+                  +256 784 101 593
+                </Link>
+                <Link href="mailto:hello@ctdrug.org" sx={footerLinkSx}>
+                  hello@ctdrug.org
+                </Link>
+              </Stack>
+            </Box>
+
+            <Box>
+              <FooterLabel>Explore</FooterLabel>
+              <Stack spacing={1} alignItems="flex-start">
+                <Box
+                  component="button"
+                  type="button"
+                  onClick={onHowItWorks}
+                  sx={{
+                    ...footerLinkSx,
+                    border: 'none',
+                    background: 'transparent',
+                    p: 0,
+                    cursor: 'pointer',
+                    font: 'inherit',
+                    textAlign: 'left',
+                  }}
+                >
+                  How it works
+                </Box>
+                <Box
+                  component="button"
+                  type="button"
+                  onClick={onAboutUs}
+                  sx={{
+                    ...footerLinkSx,
+                    border: 'none',
+                    background: 'transparent',
+                    p: 0,
+                    cursor: 'pointer',
+                    font: 'inherit',
+                    textAlign: 'left',
+                  }}
+                >
+                  About CTDRU
+                </Box>
+                <Box
+                  component="button"
+                  type="button"
+                  onClick={onStartChat || onSignup}
+                  sx={{
+                    ...footerLinkSx,
+                    border: 'none',
+                    background: 'transparent',
+                    p: 0,
+                    cursor: 'pointer',
+                    font: 'inherit',
+                    textAlign: 'left',
+                    color: tokens.goldSoft,
+                    '&:hover': { color: '#FFFFFF' },
+                  }}
+                >
+                  Start chatting
+                </Box>
+              </Stack>
+            </Box>
+          </Box>
+
+          <Box
+            sx={{
+              mt: { xs: 5, md: 6.5 },
+              pt: 2.5,
+              borderTop: '1px solid rgba(255,255,255,0.12)',
+              display: 'flex',
+              flexWrap: 'wrap',
+              justifyContent: 'space-between',
+              gap: 1.5,
+              alignItems: 'center',
+            }}
+          >
+            <Typography sx={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.82rem' }}>
+              © {new Date().getFullYear()} Wakilibot · Centre for Technology Disputes Resolution — Uganda
+            </Typography>
+            <Typography
+              sx={{
+                color: 'rgba(255,255,255,0.38)',
+                fontSize: '0.78rem',
+                letterSpacing: '0.04em',
+              }}
+            >
+              Consumer protection · Uganda
+            </Typography>
+          </Box>
         </Container>
       </Box>
     </Box>

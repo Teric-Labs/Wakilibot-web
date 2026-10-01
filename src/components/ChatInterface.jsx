@@ -225,14 +225,13 @@ const ChatInterface = ({ user, onLogout, onLogin, onSignup }) => {
         setConversationId(responseData.conversation_id);
       }
 
-      // In free-chat mode, mirror the topic the agent settled on so the next turn
-      // stays inside the same flow. A user-picked topic is never overwritten.
+      // Free chat keeps intent unset (or 'auto') so each turn can be answered freely.
+      // Multi-step complaint/fraud/status state lives on the agent session — pinning
+      // a detected topic here forced every later free-chat message into intake.
       if (isComplete && responseData?.intent) {
-        const detected = responseData.intent;
         setActiveIntent((current) => {
-          if (current) return current;
-          const known = intents.some((intent) => intent.id === detected && intent.id !== 'auto');
-          return known ? detected : current;
+          if (current && current !== 'auto') return current;
+          return current === 'auto' ? 'auto' : null;
         });
       }
 
@@ -389,8 +388,10 @@ const ChatInterface = ({ user, onLogout, onLogin, onSignup }) => {
   );
 
   // Skipping the menu entirely: composer straight away, agent picks the topic per turn.
+  // Use the 'auto' sentinel so pickerOpen closes (!activeIntent would keep the menu up
+  // while the welcome message is still showing). The API treats 'auto' as no intent.
   const handleChatFreely = useCallback(() => {
-    setActiveIntent(null);
+    setActiveIntent('auto');
     setBrowseTopics(false);
   }, []);
 
@@ -487,14 +488,20 @@ const ChatInterface = ({ user, onLogout, onLogin, onSignup }) => {
   const showEmptySuggestions =
     messages.length <= 1 && messages[0]?.isWelcome && !isWaitingForResponse;
   // The menu screen has no message box at all; the input only appears once the user has
-  // either chosen a topic or opted to chat freely.
-  const pickerOpen = !activeIntent && (showEmptySuggestions || browseTopics);
+  // either chosen a topic or opted to chat freely ('auto' sentinel closes the menu).
+  // browseTopics forces the menu back open even while free-chat is active.
+  const pickerOpen = browseTopics || (!activeIntent && showEmptySuggestions);
   const conversationStarted = messages.length > 1;
 
   const goChat = () => setCurrentView('chat');
 
   // Catalog entry for the chosen topic, used by the header pinned above the chat.
-  const activeTopic = intents.find((topic) => topic.id === activeIntent) || null;
+  // Free-chat ('auto') has no topic brief — just the composer.
+  const isFreeChat = activeIntent === 'auto';
+  const activeTopic =
+    activeIntent && !isFreeChat
+      ? intents.find((topic) => topic.id === activeIntent) || null
+      : null;
   const inputLocked = isLoading || isStreaming;
 
   // The menu is the first thing anyone sees, so it introduces the assistant in one line

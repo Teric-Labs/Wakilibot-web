@@ -254,15 +254,13 @@ export const TopicPicker = ({
         ))}
       </Box>
 
-      {auto && (
-        <Typography sx={{ color: tokens.muted, fontSize: '0.8rem', mt: 3 }}>
-          {t('welcome', 'notSureWhich')}
-          <InlineAction onClick={() => onChatFreely?.()} disabled={disabled}>
-            {auto.label ? auto.label.toLowerCase() : t('welcome', 'chatFreely')}
-          </InlineAction>
-          {t('welcome', 'andDescribe')}
-        </Typography>
-      )}
+      <Typography sx={{ color: tokens.muted, fontSize: '0.8rem', mt: 3 }}>
+        {t('welcome', 'notSureWhich')}
+        <InlineAction onClick={() => onChatFreely?.()} disabled={disabled}>
+          {auto?.label ? auto.label.toLowerCase() : t('welcome', 'chatFreely')}
+        </InlineAction>
+        {t('welcome', 'andDescribe')}
+      </Typography>
     </Box>
   );
 };

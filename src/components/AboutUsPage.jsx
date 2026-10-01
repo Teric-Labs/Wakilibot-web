@@ -7,7 +7,7 @@ import {
   Translate as LanguageIcon,
   Phone as PhoneIcon,
   Email as EmailIcon,
-  Public as PublicIcon,
+  Place as PlaceIcon,
 } from '@mui/icons-material';
 import TopNav from './TopNav';
 import { tokens } from '../styles/theme';
@@ -39,22 +39,22 @@ const values = [
 
 const contacts = [
   {
+    icon: <PlaceIcon />,
+    title: 'Address',
+    detail: 'Plot 29-37 Ntinda Road, Kampala',
+    note: 'Centre for Technology Disputes Resolution — Uganda',
+  },
+  {
     icon: <PhoneIcon />,
     title: 'Phone',
-    detail: '+256-41-4230060',
-    note: 'CTDRU consumer support line',
+    detail: '+256 760 345 027 · +256 784 101 593',
+    note: 'CTDRU consumer support lines',
   },
   {
     icon: <EmailIcon />,
     title: 'Email',
-    detail: 'ctdru@bou.or.ug',
-    note: 'Detailed inquiries and follow-up',
-  },
-  {
-    icon: <PublicIcon />,
-    title: 'Website',
-    detail: 'www.bou.or.ug',
-    note: 'Bank of Uganda · Consumer Affairs',
+    detail: 'hello@ctdrug.org',
+    note: 'Inquiries and follow-up',
   },
 ];
 
