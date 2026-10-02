@@ -1,117 +1,117 @@
-jest.mock('../services/api', () => ({
-  generateTTS: jest.fn(),
-}));
+jest.mock('./VoiceNoteBubble', () => (props) => (
+  <div data-testid="voice-note-bubble" data-is-user={String(props.isUser)} data-autoplay={String(props.autoplay)}>
+    voice note: {props.audioUrl}
+  </div>
+));
 
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import MessageBubble from './MessageBubble';
-import api from '../services/api';
 
-// jsdom has no Web Audio API - MessageBubble decodes raw PCM bytes into an
-// AudioBuffer and plays it via AudioContext/AudioBufferSourceNode, so both
-// need a manual mock. Each createBufferSource() call is recorded in
-// sourceNodes so tests can inspect/trigger it (e.g. fire onended).
-let sourceNodes;
-let createBufferMock;
+describe('MessageBubble', () => {
+  test('renders a plain user-typed message', () => {
+    render(<MessageBubble message="I have a complaint" isUser={true} />);
 
-beforeEach(() => {
-  jest.clearAllMocks();
-  sourceNodes = [];
-  createBufferMock = jest.fn((channels, length, sampleRate) => ({
-    channels,
-    length,
-    sampleRate,
-    copyToChannel: jest.fn(),
-  }));
-
-  global.AudioContext = jest.fn().mockImplementation(function () {
-    this.destination = {};
-    this.createBuffer = createBufferMock;
-    this.createBufferSource = jest.fn(() => {
-      const node = {
-        buffer: null,
-        onended: null,
-        connect: jest.fn(),
-        start: jest.fn(),
-        stop: jest.fn(),
-      };
-      sourceNodes.push(node);
-      return node;
-    });
-    this.close = jest.fn();
+    expect(screen.getByText('I have a complaint')).toBeInTheDocument();
+    expect(screen.queryByTestId('voice-note-bubble')).not.toBeInTheDocument();
   });
-});
 
-const renderBubble = (props = {}) =>
-  render(<MessageBubble message="Hello world" isUser={false} {...props} />);
+  test('renders a plain bot text reply', () => {
+    render(<MessageBubble message="How can I help you today?" isUser={false} />);
 
-test('generates and plays audio on first click, decoding PCM at 16kHz mono', async () => {
-  const pcm = new ArrayBuffer(8); // 4 Int16 samples
-  api.generateTTS.mockResolvedValue({ pcm, sampleRate: 16000 });
+    expect(screen.getByText('How can I help you today?')).toBeInTheDocument();
+  });
 
-  renderBubble();
-  await userEvent.click(screen.getByRole('button', { name: 'Convert to speech' }));
+  test('shows the user voice note bubble when a voice message has captured audio', () => {
+    render(
+      <MessageBubble
+        message="transcribed text"
+        isUser={true}
+        viaVoice={true}
+        audioUrl="blob:user-recording"
+        audioDuration={4}
+      />
+    );
 
-  expect(await screen.findByRole('button', { name: 'Stop audio' })).toBeInTheDocument();
-  expect(api.generateTTS).toHaveBeenCalledWith('Hello world');
-  expect(createBufferMock).toHaveBeenCalledWith(1, 4, 16000);
-  expect(sourceNodes).toHaveLength(1);
-  expect(sourceNodes[0].start).toHaveBeenCalled();
-});
+    const bubble = screen.getByTestId('voice-note-bubble');
+    expect(bubble).toHaveAttribute('data-is-user', 'true');
+    expect(bubble).toHaveTextContent('blob:user-recording');
+  });
 
-test('clicking again while playing stops the current source', async () => {
-  api.generateTTS.mockResolvedValue({ pcm: new ArrayBuffer(4), sampleRate: 16000 });
+  test('shows a "Spoken" badge when a voice message has no captured audio to play back', () => {
+    render(<MessageBubble message="transcribed text" isUser={true} viaVoice={true} />);
 
-  renderBubble();
-  await userEvent.click(screen.getByRole('button', { name: 'Convert to speech' }));
-  await screen.findByRole('button', { name: 'Stop audio' });
+    expect(screen.getByText(/Spoken/i)).toBeInTheDocument();
+    expect(screen.queryByTestId('voice-note-bubble')).not.toBeInTheDocument();
+  });
 
-  await userEvent.click(screen.getByRole('button', { name: 'Stop audio' }));
+  test('shows a loading state while a bot voice reply is being prepared', () => {
+    render(<MessageBubble message="" isUser={false} autoSpeak={true} ttsError={false} replyAudioUrl={null} />);
 
-  expect(sourceNodes[0].stop).toHaveBeenCalled();
-  expect(await screen.findByRole('button', { name: 'Play audio' })).toBeInTheDocument();
-});
+    expect(screen.getByText(/Thinking/i)).toBeInTheDocument();
+    expect(screen.queryByTestId('voice-note-bubble')).not.toBeInTheDocument();
+  });
 
-test('replaying after generation reuses the decoded buffer without calling generateTTS again', async () => {
-  api.generateTTS.mockResolvedValue({ pcm: new ArrayBuffer(4), sampleRate: 16000 });
+  test('shows the bot voice note, autoplaying, once reply audio is ready', () => {
+    render(
+      <MessageBubble
+        message="Here is your answer"
+        isUser={false}
+        autoSpeak={true}
+        replyAudioUrl="blob:bot-reply"
+      />
+    );
 
-  renderBubble();
-  await userEvent.click(screen.getByRole('button', { name: 'Convert to speech' }));
-  await screen.findByRole('button', { name: 'Stop audio' });
-  await userEvent.click(screen.getByRole('button', { name: 'Stop audio' }));
-  await screen.findByRole('button', { name: 'Play audio' });
+    const bubble = screen.getByTestId('voice-note-bubble');
+    expect(bubble).toHaveAttribute('data-is-user', 'false');
+    expect(bubble).toHaveAttribute('data-autoplay', 'true');
+    expect(bubble).toHaveTextContent('blob:bot-reply');
+  });
 
-  await userEvent.click(screen.getByRole('button', { name: 'Play audio' }));
+  test('falls back to the text transcript when TTS fails for a voice reply', () => {
+    render(
+      <MessageBubble
+        message="Here is your answer as text"
+        isUser={false}
+        autoSpeak={true}
+        ttsError={true}
+        replyAudioUrl={null}
+      />
+    );
 
-  expect(api.generateTTS).toHaveBeenCalledTimes(1);
-  expect(sourceNodes).toHaveLength(2); // a fresh source node per play, same decoded buffer
-});
+    expect(screen.getByText(/Audio unavailable\. Transcript:/i)).toBeInTheDocument();
+    expect(screen.getByText('Here is your answer as text')).toBeInTheDocument();
+    expect(screen.queryByTestId('voice-note-bubble')).not.toBeInTheDocument();
+  });
 
-test('reverts to the play state on its own once playback ends naturally', async () => {
-  api.generateTTS.mockResolvedValue({ pcm: new ArrayBuffer(4), sampleRate: 16000 });
+  test('renders complaint reference and source links for a bot text reply', () => {
+    render(
+      <MessageBubble
+        message="Your complaint was submitted"
+        isUser={false}
+        responseData={{
+          complaintId: 'CTDRU-1234',
+          references: [{ title: 'Bank of Uganda Consumer Affairs', url: 'https://example.test' }],
+        }}
+      />
+    );
 
-  renderBubble();
-  await userEvent.click(screen.getByRole('button', { name: 'Convert to speech' }));
-  await screen.findByRole('button', { name: 'Stop audio' });
+    expect(screen.getByText(/CTDRU-1234/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Bank of Uganda Consumer Affairs' })).toHaveAttribute(
+      'href',
+      'https://example.test'
+    );
+  });
 
-  sourceNodes[0].onended();
+  test('does not render reference metadata for the welcome message', () => {
+    render(
+      <MessageBubble
+        message="Welcome to WakiliBot"
+        isUser={false}
+        isWelcome={true}
+        responseData={{ complaintId: 'CTDRU-1234' }}
+      />
+    );
 
-  expect(await screen.findByRole('button', { name: 'Play audio' })).toBeInTheDocument();
-});
-
-test('shows a TTS error and does not create an audio buffer when generation fails', async () => {
-  api.generateTTS.mockRejectedValue(new Error('Text is required for TTS generation'));
-
-  renderBubble();
-  await userEvent.click(screen.getByRole('button', { name: 'Convert to speech' }));
-
-  expect(
-    await screen.findByRole('button', { name: 'TTS Error: Text is required for TTS generation' })
-  ).toBeInTheDocument();
-  expect(createBufferMock).not.toHaveBeenCalled();
-});
-
-test('does not render the TTS button for the user\'s own messages', () => {
-  renderBubble({ isUser: true });
-  expect(screen.queryByRole('button', { name: 'Convert to speech' })).not.toBeInTheDocument();
+    expect(screen.queryByText(/CTDRU-1234/)).not.toBeInTheDocument();
+  });
 });

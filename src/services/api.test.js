@@ -27,7 +27,7 @@ describe('loginUser', () => {
     const result = await api.loginUser({ email: 'a@b.com', password: 'secret' });
 
     expect(axios.post).toHaveBeenCalledWith(
-      'https://wakilibot-main.onrender.com/auth/login',
+      'https://wakilibot-main-tum2.onrender.com/auth/login',
       { email: 'a@b.com', password: 'secret' },
       expect.objectContaining({ headers: { 'Content-Type': 'application/json' } })
     );
@@ -47,7 +47,7 @@ describe('registerUser', () => {
     const result = await api.registerUser({ full_name: 'Jane', email: 'jane@x.com' });
 
     expect(axios.post).toHaveBeenCalledWith(
-      'https://wakilibot-main.onrender.com/auth/register',
+      'https://wakilibot-main-tum2.onrender.com/auth/register',
       { full_name: 'Jane', email: 'jane@x.com' },
       expect.objectContaining({ headers: { 'Content-Type': 'application/json' } })
     );
@@ -62,7 +62,7 @@ describe('resetPassword', () => {
     await api.resetPassword('a@b.com', 'newpass1', 'newpass1');
 
     expect(axios.post).toHaveBeenCalledWith(
-      'https://wakilibot-main.onrender.com/auth/reset-password',
+      'https://wakilibot-main-tum2.onrender.com/auth/reset-password',
       { email: 'a@b.com', new_password: 'newpass1', confirm_password: 'newpass1' },
       expect.objectContaining({ headers: { 'Content-Type': 'application/json' } })
     );
@@ -76,7 +76,7 @@ describe('getDocuments', () => {
     await api.getDocuments();
 
     expect(axios.get).toHaveBeenCalledWith(
-      'https://wakilibot-main.onrender.com/documents?page=1&page_size=20&sort_by=upload_date&sort_order=desc',
+      'https://wakilibot-main-tum2.onrender.com/documents?page=1&page_size=20&sort_by=upload_date&sort_order=desc',
       expect.objectContaining({ timeout: 10000 })
     );
   });
@@ -100,7 +100,7 @@ describe('uploadDocument', () => {
     await api.uploadDocument(file, { title: 'Test Doc', description: 'desc', category: 'legislation' });
 
     const [url, formData, config] = axios.post.mock.calls[0];
-    expect(url).toBe('https://wakilibot-main.onrender.com/documents/upload');
+    expect(url).toBe('https://wakilibot-main-tum2.onrender.com/documents/upload');
     expect(formData.get('title')).toBe('Test Doc');
     expect(formData.get('description')).toBe('desc');
     expect(formData.get('category')).toBe('legislation');
@@ -118,7 +118,7 @@ describe('sendMessage', () => {
     const data = await api.sendMessage('Hi', null, 'en');
 
     expect(global.fetch).toHaveBeenCalledWith(
-      'https://wakilibot-agent.onrender.com/agents/conversations',
+      'https://wakilibot-agent-0wm0.onrender.com/agents/conversations',
       expect.objectContaining({ method: 'POST' })
     );
     expect(data.answer).toBe('Hello there');
@@ -136,67 +136,60 @@ describe('sendMessage', () => {
   });
 });
 
-describe('generateTTS', () => {
-  test('posts JSON input to the streaming endpoint and returns raw PCM bytes', async () => {
-    const fakePcm = new ArrayBuffer(8);
-    global.fetch = jest.fn().mockResolvedValue({
-      ok: true,
-      arrayBuffer: async () => fakePcm,
-    });
+describe('synthesizeSpeech', () => {
+  const fakeBlob = { type: 'audio/wav' };
 
-    const result = await api.generateTTS('Hello there');
+  beforeEach(() => {
+    global.URL.createObjectURL = jest.fn().mockReturnValue('blob:mock-audio-url');
+  });
 
-    // Goes through the agent's /tts proxy, not tts.atekervoices.com directly -
-    // that service blocks browser calls outright (no CORS headers on either
-    // its preflight or its actual response).
-    expect(global.fetch).toHaveBeenCalledWith(
-      'https://wakilibot-agent.onrender.com/tts',
+  test('posts text + language as multipart form data to the agent /tts endpoint', async () => {
+    axios.post.mockResolvedValue({ data: fakeBlob });
+
+    const result = await api.synthesizeSpeech('Hello there', 'en');
+
+    expect(axios.post).toHaveBeenCalledWith(
+      'https://wakilibot-agent-0wm0.onrender.com/tts',
+      expect.any(FormData),
       expect.objectContaining({
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ input: 'Hello there' }),
+        headers: { 'Content-Type': 'multipart/form-data' },
+        responseType: 'blob',
       })
     );
-    expect(result.pcm).toBe(fakePcm);
-    expect(result.sampleRate).toBe(16000);
+    const [, formData] = axios.post.mock.calls[0];
+    expect(formData.get('text')).toBe('Hello there');
+    expect(formData.get('language')).toBe('en');
+
+    expect(result.audioUrl).toBe('blob:mock-audio-url');
+    expect(result.engine).toBe('spark-tts-proxy');
+    expect(global.URL.createObjectURL).toHaveBeenCalledWith(fakeBlob);
   });
 
   test('cleans markdown/emoji out of the text before sending', async () => {
-    global.fetch = jest.fn().mockResolvedValue({
-      ok: true,
-      arrayBuffer: async () => new ArrayBuffer(4),
-    });
+    axios.post.mockResolvedValue({ data: fakeBlob });
 
-    await api.generateTTS('**Bold** text 🎉');
+    await api.synthesizeSpeech('**Bold** text 🎉', 'en');
 
-    const [, options] = global.fetch.mock.calls[0];
-    expect(JSON.parse(options.body)).toEqual({ input: 'Bold text' });
+    const [, formData] = axios.post.mock.calls[0];
+    expect(formData.get('text')).toBe('Bold text');
   });
 
-  test('throws when the response is not ok', async () => {
-    global.fetch = jest.fn().mockResolvedValue({
-      ok: false,
-      status: 503,
-      text: async () => 'Service unavailable',
-    });
+  test('falls back to a default phrase for empty input, rather than failing silently', async () => {
+    axios.post.mockResolvedValue({ data: fakeBlob });
 
-    await expect(api.generateTTS('Hello')).rejects.toThrow('TTS service error: 503');
+    await api.synthesizeSpeech('', 'en');
+
+    const [, formData] = axios.post.mock.calls[0];
+    expect(formData.get('text')).toBe('Here is the response.');
   });
 
-  test('throws when the response body is empty', async () => {
-    global.fetch = jest.fn().mockResolvedValue({
-      ok: true,
-      arrayBuffer: async () => new ArrayBuffer(0),
+  test('throws a TTS_REMOTE_UNAVAILABLE error when the request fails', async () => {
+    axios.post.mockRejectedValue({ response: { status: 502 } });
+
+    await expect(api.synthesizeSpeech('Hello', 'en')).rejects.toMatchObject({
+      code: 'TTS_REMOTE_UNAVAILABLE',
+      status: 502,
     });
-
-    await expect(api.generateTTS('Hello')).rejects.toThrow('empty audio data');
-  });
-
-  test('throws for empty input text without calling fetch', async () => {
-    global.fetch = jest.fn();
-
-    await expect(api.generateTTS('')).rejects.toThrow('Text is required');
-    expect(global.fetch).not.toHaveBeenCalled();
   });
 });
 

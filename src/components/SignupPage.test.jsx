@@ -1,5 +1,6 @@
 jest.mock('../services/api', () => ({
   registerUser: jest.fn(),
+  utils: { storeUserData: jest.fn() },
 }));
 
 import { render, screen, waitFor } from '@testing-library/react';
@@ -15,105 +16,118 @@ const renderSignupPage = (props = {}) =>
       onSignup={noop}
       onBack={noop}
       onSwitchToLogin={noop}
-      onFeatures={noop}
-      onHowItWorks={noop}
-      onAboutUs={noop}
+      onContinueAsGuest={noop}
       {...props}
     />
   );
 
-const goToStep2 = async () => {
-  await userEvent.type(screen.getByLabelText(/Full Name/i), 'Jane Doe');
-  await userEvent.click(screen.getByRole('button', { name: /Next/i }));
-  await screen.findByLabelText(/Email Address/i);
-};
-
-const goToStep3 = async () => {
-  await goToStep2();
-  await userEvent.type(screen.getByLabelText(/Email Address/i), 'jane@example.com');
-  await userEvent.type(screen.getByLabelText(/Phone Number/i), '+256700000000');
-  await userEvent.click(screen.getByRole('button', { name: /Next/i }));
-  await screen.findByLabelText(/^Password$/i);
+const fillValidForm = async () => {
+  await userEvent.type(screen.getByLabelText(/Full name/i), 'Jane Doe');
+  await userEvent.type(screen.getByLabelText(/Email address/i), 'jane@example.com');
+  await userEvent.type(screen.getByLabelText(/^Password$/i), 'password123');
+  await userEvent.click(screen.getByRole('checkbox', { name: /agree to the terms/i }));
 };
 
 beforeEach(() => {
   jest.clearAllMocks();
 });
 
-test('step 1 blocks advancing without a full name', async () => {
+test('blocks submission when required fields are empty', async () => {
   renderSignupPage();
 
-  await userEvent.click(screen.getByRole('button', { name: /Next/i }));
+  await userEvent.click(screen.getByRole('button', { name: /^Continue$/i }));
 
-  expect(await screen.findByText(/Full name is required/i)).toBeInTheDocument();
-  expect(screen.queryByLabelText(/Email Address/i)).not.toBeInTheDocument();
-});
-
-test('step 1 advances to step 2 once a full name is entered', async () => {
-  renderSignupPage();
-  await goToStep2();
-
-  expect(screen.getByLabelText(/Email Address/i)).toBeInTheDocument();
-  expect(screen.getByLabelText(/Phone Number/i)).toBeInTheDocument();
-});
-
-test('step 2 rejects an invalid email and an invalid phone number', async () => {
-  renderSignupPage();
-  await goToStep2();
-
-  await userEvent.type(screen.getByLabelText(/Email Address/i), 'not-an-email');
-  await userEvent.type(screen.getByLabelText(/Phone Number/i), 'abc');
-  await userEvent.click(screen.getByRole('button', { name: /Next/i }));
-
-  expect(await screen.findByText(/Invalid email format/i)).toBeInTheDocument();
-  expect(screen.getByText(/Invalid phone number format/i)).toBeInTheDocument();
-});
-
-test('the password-strength meter reflects the password entered on step 3', async () => {
-  renderSignupPage();
-  await goToStep3();
-
-  const password = screen.getByLabelText(/^Password$/i);
-
-  await userEvent.type(password, 'abc');
-  expect(await screen.findByText(/Password strength: Weak/i)).toBeInTheDocument();
-
-  await userEvent.clear(password);
-  await userEvent.type(password, 'Abcdefgh1234');
-  expect(await screen.findByText(/Password strength: Strong/i)).toBeInTheDocument();
-});
-
-test('step 3 requires matching passwords and agreement to terms before submitting', async () => {
-  renderSignupPage();
-  await goToStep3();
-
-  await userEvent.type(screen.getByLabelText(/^Password$/i), 'Password1');
-  await userEvent.type(screen.getByLabelText(/Confirm Password/i), 'Password2');
-  await userEvent.click(screen.getByRole('button', { name: /Create Account/i }));
-
-  expect(await screen.findByText(/Passwords do not match/i)).toBeInTheDocument();
-  expect(await screen.findByText(/You must agree to the terms and conditions/i)).toBeInTheDocument();
+  expect(await screen.findByText(/Name is required/i)).toBeInTheDocument();
+  expect(screen.getByText(/Email is required/i)).toBeInTheDocument();
   expect(api.registerUser).not.toHaveBeenCalled();
 });
 
-test('submits registration data once every step is valid', async () => {
-  api.registerUser.mockResolvedValue({ user_id: 'u9' });
+test('rejects an invalid email address', async () => {
+  renderSignupPage();
+
+  await userEvent.type(screen.getByLabelText(/Full name/i), 'Jane Doe');
+  await userEvent.type(screen.getByLabelText(/Email address/i), 'not-an-email');
+  await userEvent.type(screen.getByLabelText(/^Password$/i), 'password123');
+  await userEvent.click(screen.getByRole('checkbox', { name: /agree to the terms/i }));
+  await userEvent.click(screen.getByRole('button', { name: /^Continue$/i }));
+
+  expect(await screen.findByText(/Invalid email/i)).toBeInTheDocument();
+  expect(api.registerUser).not.toHaveBeenCalled();
+});
+
+test('rejects a password shorter than 8 characters', async () => {
+  renderSignupPage();
+
+  await userEvent.type(screen.getByLabelText(/Full name/i), 'Jane Doe');
+  await userEvent.type(screen.getByLabelText(/Email address/i), 'jane@example.com');
+  await userEvent.type(screen.getByLabelText(/^Password$/i), 'short');
+  await userEvent.click(screen.getByRole('checkbox', { name: /agree to the terms/i }));
+  await userEvent.click(screen.getByRole('button', { name: /^Continue$/i }));
+
+  expect(await screen.findByText(/At least 8 characters/i)).toBeInTheDocument();
+  expect(api.registerUser).not.toHaveBeenCalled();
+});
+
+test('requires agreement to the terms before submitting', async () => {
+  renderSignupPage();
+
+  await userEvent.type(screen.getByLabelText(/Full name/i), 'Jane Doe');
+  await userEvent.type(screen.getByLabelText(/Email address/i), 'jane@example.com');
+  await userEvent.type(screen.getByLabelText(/^Password$/i), 'password123');
+  await userEvent.click(screen.getByRole('button', { name: /^Continue$/i }));
+
+  expect(await screen.findByText(/Please accept the terms/i)).toBeInTheDocument();
+  expect(api.registerUser).not.toHaveBeenCalled();
+});
+
+test('the password visibility toggle switches the field between hidden and visible', async () => {
+  renderSignupPage();
+
+  const passwordField = screen.getByLabelText(/^Password$/i);
+  expect(passwordField).toHaveAttribute('type', 'password');
+
+  await userEvent.click(screen.getByRole('button', { name: /Show password/i }));
+  expect(passwordField).toHaveAttribute('type', 'text');
+
+  await userEvent.click(screen.getByRole('button', { name: /Hide password/i }));
+  expect(passwordField).toHaveAttribute('type', 'password');
+});
+
+test('submits registration data once the form is valid, and signs the user in', async () => {
+  api.registerUser.mockResolvedValue({ user: { user_id: 'u9' } });
   const onSignup = jest.fn();
   renderSignupPage({ onSignup });
-  await goToStep3();
 
-  await userEvent.type(screen.getByLabelText(/^Password$/i), 'Password1');
-  await userEvent.type(screen.getByLabelText(/Confirm Password/i), 'Password1');
-  await userEvent.click(screen.getByRole('checkbox'));
-  await userEvent.click(screen.getByRole('button', { name: /Create Account/i }));
+  await fillValidForm();
+  await userEvent.click(screen.getByRole('button', { name: /^Continue$/i }));
 
   await waitFor(() => expect(api.registerUser).toHaveBeenCalled());
   expect(api.registerUser).toHaveBeenCalledWith({
     full_name: 'Jane Doe',
     email: 'jane@example.com',
-    phone: '+256700000000',
-    password: 'Password1',
-    language: 'en',
+    password: 'password123',
+    preferred_language: 'english',
   });
+  expect(api.utils.storeUserData).toHaveBeenCalledWith({ user_id: 'u9' });
   expect(onSignup).toHaveBeenCalledWith({ user_id: 'u9' });
+});
+
+test('shows a server-provided error message when registration fails', async () => {
+  api.registerUser.mockRejectedValue({ response: { data: { detail: 'Email already registered' } } });
+  renderSignupPage();
+
+  await fillValidForm();
+  await userEvent.click(screen.getByRole('button', { name: /^Continue$/i }));
+
+  expect(await screen.findByText(/Email already registered/i)).toBeInTheDocument();
+});
+
+test('continue as guest calls onContinueAsGuest without registering', async () => {
+  const onContinueAsGuest = jest.fn();
+  renderSignupPage({ onContinueAsGuest });
+
+  await userEvent.click(screen.getByRole('button', { name: /Continue as guest/i }));
+
+  expect(onContinueAsGuest).toHaveBeenCalled();
+  expect(api.registerUser).not.toHaveBeenCalled();
 });

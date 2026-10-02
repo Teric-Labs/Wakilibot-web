@@ -1,8 +1,20 @@
+jest.mock('./services/api', () => ({
+  __esModule: true,
+  default: {
+    performBackgroundHealthCheck: () => Promise.resolve({}),
+    utils: {
+      getStoredUserData: () => null,
+    },
+  },
+}));
+
 import { render, screen } from '@testing-library/react';
 import App from './App';
 
-test('renders learn react link', () => {
+test('renders the landing page on first load', async () => {
   render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+
+  expect(
+    await screen.findByText(/Capture complaints\. Report fraud\. Protect your money\./i)
+  ).toBeInTheDocument();
 });
