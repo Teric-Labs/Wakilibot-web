@@ -291,7 +291,7 @@ const ChatInterface = ({ user, onLogout, onLogin, onSignup }) => {
           .catch(() => {});
       }
     },
-    [user?.user_id, isWaitingForResponse, intents, getCurrentLanguageInfo]
+    [user?.user_id, isWaitingForResponse, getCurrentLanguageInfo]
   );
 
   const startNewConversation = useCallback(() => {

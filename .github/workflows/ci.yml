@@ -1,0 +1,37 @@
+name: CI
+
+# Path to prod: every push/PR runs the test suite and a production build.
+# Merging to main is gated on this passing; Render's own GitHub
+# integration auto-deploys main, so this workflow is the quality gate in
+# front of that, not a replacement for it. Enable "Require status checks
+# to pass" on main's branch protection rule (repo Settings -> Branches)
+# to make this a hard gate rather than just a visible check.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      CI: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run test suite
+        run: npx react-scripts test --watchAll=false
+
+      - name: Production build
+        run: npm run build
