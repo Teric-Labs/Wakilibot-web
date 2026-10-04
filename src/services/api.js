@@ -1144,8 +1144,10 @@ const api = {
   getUserProfile: async (userId) => {
     try {
       console.log('API: Getting user profile:', userId);
+      const storedUser = api.utils.getStoredUserData();
       const response = await axios.get(`${BACKEND_API_URL}/auth/user/${userId}`, {
         timeout: 10000, // 10 second timeout
+        headers: storedUser?.access_token ? { Authorization: `Bearer ${storedUser.access_token}` } : {},
       });
 
       console.log('API: User profile retrieved:', response.data);

@@ -53,8 +53,12 @@ const LoginPage = ({
         email: email.trim(),
         password,
       });
-      api.utils.storeUserData(response.user);
-      onLogin(response.user);
+      // access_token is a sibling of `user` in the login response, not
+      // nested inside it - merge it in so storeUserData persists a token
+      // getUserProfile() can send, instead of silently dropping it.
+      const user = { ...response.user, access_token: response.access_token };
+      api.utils.storeUserData(user);
+      onLogin(user);
     } catch (error) {
       if (error.response?.status === 401) {
         setSubmitError('Incorrect email or password.');

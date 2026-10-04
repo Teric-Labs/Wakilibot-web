@@ -7,7 +7,7 @@ import {
   CircularProgress,
   Typography,
 } from '@mui/material';
-import { MicIcon, SendIcon } from './icons';
+import { MicIcon, SendIcon, VoiceModeIcon } from './icons';
 import VoiceRecorder from './VoiceRecorder';
 import api from '../services/api';
 import { useLanguage } from '../hooks/useLanguage';
@@ -29,6 +29,7 @@ const MessageInput = ({
   activeIntent = null,
   activeTopicLabel = null,
   onSendTranscript,
+  onStartVoiceMode,
   isLoading,
   setIsLoading,
   isStreaming,
@@ -261,6 +262,32 @@ const MessageInput = ({
           ) : (
             <SendIcon />
           )}
+        </IconButton>
+
+        {/* Hands-free continuous voice conversation (listens, replies, re-listens on
+            its own) — distinct from the mic button, which records one message at a time. */}
+        <IconButton
+          onClick={onStartVoiceMode}
+          aria-label="Start voice conversation"
+          disabled={busy}
+          sx={{
+            width: 38,
+            height: 38,
+            borderRadius: radii.circle,
+            color: busy ? 'rgba(11,31,58,0.2)' : tokens.gold,
+            border: '1px solid rgba(184,134,11,0.3)',
+            transition: 'all .15s ease',
+            '&:hover': {
+              borderColor: tokens.gold,
+              backgroundColor: 'rgba(184,134,11,0.08)',
+            },
+            '&:disabled': {
+              color: 'rgba(11,31,58,0.2)',
+              border: '1px solid rgba(11,31,58,0.06)',
+            },
+          }}
+        >
+          <VoiceModeIcon size={19} />
         </IconButton>
       </Paper>
 

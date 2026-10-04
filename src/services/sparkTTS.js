@@ -12,8 +12,12 @@
  *   JSON { type: "ping" }              → respond with { type: "pong" }
  */
 
+// wss:// (not ws://): the deployed site is served over https, and browsers block a
+// plain ws:// connection from an https:// page as mixed content - the WebSocket
+// would fail to even open, regardless of whether the TTS service itself is up.
+// tts.atekervoices.com sits behind Cloudflare, which terminates TLS for wss:// too.
 const SPARK_TTS_WS_URL =
-  process.env.REACT_APP_TTS_WS_URL || 'ws://tts.atekervoices.com/v1/audio/speech/stream/ws';
+  process.env.REACT_APP_TTS_WS_URL || 'wss://tts.atekervoices.com/v1/audio/speech/stream/ws';
 
 // Map our language codes to Spark TTS voice identifiers.
 // The service supports local Ugandan voices natively.

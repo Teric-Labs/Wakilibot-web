@@ -43,6 +43,8 @@ import {
   ExternalLink,
   Link,
   Trash2,
+  AudioLines,
+  PhoneOff,
 } from 'lucide-react';
 
 /**
@@ -98,6 +100,8 @@ export const SendIcon = makeIcon(Send, 18);
 export const CloseIcon = makeIcon(X, 18);
 export const EditTranscriptIcon = makeIcon(PenLine, 15);
 export const TrashIcon = makeIcon(Trash2, 18);
+export const VoiceModeIcon = makeIcon(AudioLines, 20);
+export const EndCallIcon = makeIcon(PhoneOff, 22);
 export const FlowArrowIcon = makeIcon(ArrowRight, 14);
 export const BackIcon = makeIcon(ArrowLeft, 20);
 export const SelectedIcon = makeIcon(Check, 18);

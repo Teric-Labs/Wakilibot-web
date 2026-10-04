@@ -27,6 +27,7 @@ const MessageBubble = ({
   replyAudioUrl = null,
   ttsError = false,
   language = 'en',
+  onAutoPlayEnd = null,
 }) => {
   // Determine if we should show a voice note bubble:
   // - User voice messages with captured audio
@@ -112,6 +113,7 @@ const MessageBubble = ({
                 isUser={false}
                 autoplay={true}
                 transcript={null}
+                onAutoPlayEnd={onAutoPlayEnd}
               />
             </Box>
           )}

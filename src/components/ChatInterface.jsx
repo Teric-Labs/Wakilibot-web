@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
+import VoiceModeOverlay from './VoiceModeOverlay';
 import { TopicHeader, TopicPicker, TopicBrief } from './IntentSelector';
 import Sidebar from './Sidebar';
 import Archive from './Archive';
@@ -58,6 +59,8 @@ const ChatInterface = ({ user, onLogout, onLogin, onSignup }) => {
   const [activeIntent, setActiveIntent] = useState(null);
   // The full menu can also be opened deliberately mid-conversation with "Change topic".
   const [browseTopics, setBrowseTopics] = useState(false);
+  const [voiceModeActive, setVoiceModeActive] = useState(false);
+  const [voiceModeResumeSignal, setVoiceModeResumeSignal] = useState(0);
   const chatContainerRef = useRef(null);
   // True for the turn that started from a recording, so the reply is read back out loud
   // without the user having to reach for the speaker button.
@@ -310,6 +313,19 @@ const ChatInterface = ({ user, onLogout, onLogin, onSignup }) => {
     setCurrentView('chat');
   }, [selectedLanguage]);
 
+  // Voice mode's loop: resume listening once the bot's spoken reply has
+  // actually finished playing (not just "arrived"), so the user never talks
+  // over the assistant.
+  const handleVoiceReplyEnded = useCallback(() => {
+    if (voiceModeActive) setVoiceModeResumeSignal((n) => n + 1);
+  }, [voiceModeActive]);
+
+  const handleVoiceModeSend = useCallback(
+    (text, audioMeta) => handleVoiceTranscript(text, activeIntent, audioMeta),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [activeIntent, conversationId]
+  );
+
   const scrollToBottom = () => {
     chatContainerRef.current?.scrollTo({
       top: chatContainerRef.current.scrollHeight,
@@ -472,7 +488,15 @@ const ChatInterface = ({ user, onLogout, onLogin, onSignup }) => {
     }
 
     if (!text) {
-      // No speech was detected — leave the audio bubble in place but do not query the agent.
+      // No speech was detected (or transcription failed) — the audio bubble stays in
+      // place, but say so instead of leaving the user staring at a reply that never
+      // comes. A known weak spot: the live ASR endpoint is still imperfect for local
+      // languages, so this happens for real, not just on a dead network.
+      handleNewMessage({
+        text: t('errors', 'noSpeechDetected'),
+        isUser: false,
+        isError: true,
+      });
       return;
     }
 
@@ -775,6 +799,7 @@ const ChatInterface = ({ user, onLogout, onLogin, onSignup }) => {
                         replyAudioUrl={message.replyAudioUrl}
                         ttsError={message.ttsError}
                         language={getCurrentLanguageInfo()?.code || 'en'}
+                        onAutoPlayEnd={handleVoiceReplyEnded}
                       />
                     ))}
 
@@ -832,6 +857,7 @@ const ChatInterface = ({ user, onLogout, onLogin, onSignup }) => {
                     activeIntent={activeIntent}
                     activeTopicLabel={activeTopic?.label || null}
                     onSendTranscript={handleVoiceTranscript}
+                    onStartVoiceMode={() => setVoiceModeActive(true)}
                     isLoading={isLoading}
                     setIsLoading={setIsLoading}
                     isStreaming={isStreaming}
@@ -843,6 +869,18 @@ const ChatInterface = ({ user, onLogout, onLogin, onSignup }) => {
               </Box>
             )}
           </>
+        )}
+
+        {voiceModeActive && (
+          <VoiceModeOverlay
+            onClose={() => setVoiceModeActive(false)}
+            onSend={handleVoiceModeSend}
+            language={getCurrentLanguageInfo()?.code || 'en'}
+            isWaitingForResponse={isWaitingForResponse}
+            isStreaming={isStreaming}
+            latestMessage={messages[messages.length - 1] || null}
+            resumeSignal={voiceModeResumeSignal}
+          />
         )}
 
         {currentView === 'archive' && (

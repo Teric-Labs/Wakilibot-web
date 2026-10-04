@@ -68,6 +68,7 @@ const translations = {
     errors: {
       cannotReach: 'Sorry, I could not reach the assistant. Please try again.',
       ttsError: 'Audio unavailable',
+      noSpeechDetected: "Sorry, I couldn't make out what you said. Please try recording again, or type your message.",
     },
     // Language settings
     languageSettings: {
