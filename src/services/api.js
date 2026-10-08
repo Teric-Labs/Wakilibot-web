@@ -1309,6 +1309,20 @@ const api = {
     }
   },
 
+  // Knowledge Base Re-index (Agent service)
+  reindexKnowledgeBase: async () => {
+    try {
+      console.log('API: Triggering knowledge base re-indexing...');
+      const response = await axios.post(`${API_BASE_URL}/knowledge/reindex`, {}, {
+        timeout: 15000,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('API: Error reindexing knowledge base:', error);
+      throw error;
+    }
+  },
+
   // Password Reset endpoints (Backend service)
   resetPassword: async (email, newPassword, confirmPassword) => {
     try {
