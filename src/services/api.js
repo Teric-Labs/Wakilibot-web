@@ -1167,41 +1167,16 @@ const api = {
 
       console.log('API: Fetching documents from backend:', url);
       const response = await axios.get(url, {
-        timeout: 4000,
+        timeout: 10000,
       });
 
       console.log('API: Documents fetched successfully from backend:', response.data);
       return response.data;
-    } catch (backendError) {
-      console.warn('API: Backend documents endpoint unavailable, falling back to agent knowledge files:', backendError.message);
-      try {
-        const kbResponse = await axios.get(`${API_BASE_URL}/knowledge/files`, { timeout: 5000 });
-        let docs = Array.isArray(kbResponse.data) ? kbResponse.data : [];
-        if (params.search) {
-          const s = params.search.toLowerCase();
-          docs = docs.filter(d => (d.title || d.name || '').toLowerCase().includes(s));
-        }
-        if (params.category && params.category !== 'all') {
-          docs = docs.filter(d => (d.category || '').toLowerCase().includes(params.category.toLowerCase()));
-        }
-        const formatted = docs.map(d => ({
-          document_id: d.document_id || d.name,
-          title: d.title || d.name,
-          category: d.category || 'legal_reference',
-          description: d.description || `Ingested document: ${d.name}`,
-          upload_date: d.modified ? d.modified * 1000 : Date.now(),
-          url: d.url || null,
-        }));
-        return {
-          documents: formatted,
-          total: formatted.length,
-          page: 1,
-          page_size: formatted.length,
-        };
-      } catch (agentError) {
-        console.error('API: Error fetching documents from agent knowledge base:', agentError);
-        throw backendError;
-      }
+    } catch (error) {
+      console.error('API: Error fetching documents:', error);
+      console.error('API: Error response:', error.response?.data);
+      console.error('API: Error status:', error.response?.status);
+      throw error;
     }
   },
 
