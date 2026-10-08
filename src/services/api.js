@@ -1262,18 +1262,53 @@ const api = {
     }
   },
 
-  // Download document
-  downloadDocument: async (documentId) => {
+  // Download document bytes. Prefer a durable public file_url (Cloudflare R2)
+  // so we never rely on axios following a cross-origin 302 from the API.
+  downloadDocument: async (documentId, fileUrl = null) => {
     try {
+      const resolved = typeof fileUrl === 'string' ? fileUrl.trim() : '';
+      if (/^https?:\/\//i.test(resolved)) {
+        console.log('API: Downloading document from public URL:', resolved);
+        const response = await axios.get(resolved, {
+          responseType: 'blob',
+          timeout: 60000,
+        });
+        return response.data;
+      }
+
       console.log('API: Downloading document:', documentId);
       const response = await axios.get(`${BACKEND_API_URL}/documents/download/${documentId}`, {
         responseType: 'blob',
-        timeout: 30000, // 30 seconds for file download
+        timeout: 30000,
+        maxRedirects: 0,
+        validateStatus: (status) => status >= 200 && status < 400,
       });
+
+      // If the API redirects to R2, follow the Location with a direct GET
+      // instead of a cross-origin blob redirect (which browsers block).
+      if (response.status >= 300 && response.status < 400) {
+        const location = response.headers?.location;
+        if (location) {
+          const absolute = /^https?:\/\//i.test(location)
+            ? location
+            : `${BACKEND_API_URL.replace(/\/+$/, '')}${location.startsWith('/') ? '' : '/'}${location}`;
+          const r2 = await axios.get(absolute, { responseType: 'blob', timeout: 60000 });
+          return r2.data;
+        }
+      }
 
       console.log('API: Document downloaded successfully');
       return response.data;
     } catch (error) {
+      // Axios may surface redirects as errors depending on adapter; retry Location if present
+      const location = error?.response?.headers?.location;
+      if (location) {
+        const absolute = /^https?:\/\//i.test(location)
+          ? location
+          : `${BACKEND_API_URL.replace(/\/+$/, '')}${location.startsWith('/') ? '' : '/'}${location}`;
+        const r2 = await axios.get(absolute, { responseType: 'blob', timeout: 60000 });
+        return r2.data;
+      }
       console.error('API: Error downloading document:', error);
       throw error;
     }

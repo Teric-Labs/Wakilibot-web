@@ -73,10 +73,10 @@ const formatUploadDate = (value) => {
  * exactly the same parts as a History row.
  */
 const DocumentCard = ({ doc }) => {
-  // file_url comes back relative ("/documents/download/<id>"), so it is resolved against the API
-  // before a card opens it or copies it.
+  // Prefer durable Cloudflare R2 public URLs from Firestore; resolve relative API paths otherwise.
   const link = api.utils.resolveFileUrl(doc.url || doc.file_url || doc.download_url);
   const id = doc.id || doc.document_id;
+  const isPublicFile = Boolean(link && /^https?:\/\//i.test(link));
   const [notice, setNotice] = useState(null);
   const [downloading, setDownloading] = useState(false);
   const [opening, setOpening] = useState(false);
@@ -90,10 +90,18 @@ const DocumentCard = ({ doc }) => {
     timer.current = setTimeout(() => setNotice(null), 2800);
   };
 
-  // Viewing goes through the same endpoint as downloading rather than straight to file_url: on this
-  // API a record can outlive its file, and a missing one should be reported inside the card instead
-  // of opening raw JSON in a new tab.
+  // Open public R2 URLs directly. Avoid axios→/documents/download→302→R2 (cross-origin
+  // blob follow fails CORS and surfaces as "file is no longer on the server").
   const handleView = async () => {
+    if (!link) {
+      say('This file is no longer on the server');
+      return;
+    }
+    if (isPublicFile) {
+      const opened = window.open(link, '_blank', 'noopener,noreferrer');
+      if (!opened) say('Pop-up blocked - allow it for this site');
+      return;
+    }
     if (!id) {
       const opened = window.open(link, '_blank', 'noopener,noreferrer');
       if (!opened) say('Pop-up blocked - allow it for this site');
@@ -101,7 +109,7 @@ const DocumentCard = ({ doc }) => {
     }
     setOpening(true);
     try {
-      const blob = await api.downloadDocument(id);
+      const blob = await api.downloadDocument(id, link);
       const url = URL.createObjectURL(blob);
       const opened = window.open(url, '_blank', 'noopener,noreferrer');
       if (!opened) say('Pop-up blocked - allow it for this site');
@@ -114,9 +122,20 @@ const DocumentCard = ({ doc }) => {
   };
 
   const handleDownload = async () => {
+    if (!link && !id) {
+      say('Could not download this file');
+      return;
+    }
     setDownloading(true);
     try {
-      const blob = await api.downloadDocument(id);
+      // Public R2 objects are opened directly (bucket is not CORS-enabled for XHR).
+      if (isPublicFile) {
+        const opened = window.open(link, '_blank', 'noopener,noreferrer');
+        if (!opened) say('Pop-up blocked - allow it for this site');
+        else say('Opened file in a new tab');
+        return;
+      }
+      const blob = await api.downloadDocument(id, link);
       saveBlob(blob, fileNameFor(doc));
       say('Download started');
     } catch {
@@ -159,7 +178,7 @@ const DocumentCard = ({ doc }) => {
           label: downloading ? 'Downloading…' : 'Download',
           icon: DownloadActionIcon,
           onClick: handleDownload,
-          disabled: !id || downloading || opening,
+          disabled: (!id && !link) || downloading || opening,
         },
         { id: 'rule', divider: true },
         {
