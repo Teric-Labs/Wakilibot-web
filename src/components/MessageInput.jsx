@@ -26,6 +26,7 @@ const MessageInput = ({
   onMessageReceived,
   onStreamingMessage,
   conversationId,
+  onConversationIdChange,
   activeIntent = null,
   activeTopicLabel = null,
   onSendTranscript,
@@ -93,6 +94,11 @@ const MessageInput = ({
 
       // Only add final response if streaming failed (to avoid duplicates)
       if (!streamingSucceeded && response && response.answer) {
+        // Streaming path updates React via onStreamingMessage; non-stream must
+        // mirror conversation_id into parent state so the next turn keeps the thread.
+        if (response.conversation_id) {
+          onConversationIdChange?.(response.conversation_id);
+        }
         onMessageReceived({
           text: response.answer,
           isUser: false,

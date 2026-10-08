@@ -1375,6 +1375,16 @@ const api = {
     // Get current conversation ID
     getCurrentConversationId: () => getConversationId(),
 
+    // Mirror a conversation id into sessionStorage so API fallbacks match React state
+    // (e.g. after resuming a chat from History).
+    setCurrentConversationId: (conversationId) => {
+      if (conversationId) {
+        setConversationId(conversationId);
+      } else {
+        clearConversationId();
+      }
+    },
+
     /**
      * The documents API returns relative paths ("/documents/download/<id>"), which a browser would
      * otherwise open against its own origin - the dev server, not the API. Anything relative is

@@ -226,6 +226,7 @@ const ChatInterface = ({ user, onLogout, onLogin, onSignup }) => {
 
       if (responseData?.conversation_id) {
         setConversationId(responseData.conversation_id);
+        api.utils.setCurrentConversationId(responseData.conversation_id);
       }
 
       // Free chat keeps intent unset (or 'auto') so each turn can be answered freely.
@@ -354,13 +355,23 @@ const ChatInterface = ({ user, onLogout, onLogin, onSignup }) => {
   }, []);
 
   const handleSelectConversation = async (conversationData) => {
+    const resumeId =
+      typeof conversationData === 'string'
+        ? conversationData
+        : conversationData?.id || conversationData?.conversation_id || null;
+
+    // Keep React state and sessionStorage on the same id so the next send
+    // (prop or api.js fallback) continues the resumed thread on the agent.
+    if (resumeId) {
+      setConversationId(resumeId);
+      api.utils.setCurrentConversationId(resumeId);
+    }
+
     if (typeof conversationData === 'string') {
-      setConversationId(conversationData);
       setCurrentView('chat');
       return;
     }
     if (conversationData?.messages) {
-      setConversationId(conversationData.id);
       setCurrentView('chat');
       const formatted = conversationData.messages.map((msg) => ({
         id: msg.id || `msg_${Date.now()}_${Math.random()}`,
@@ -854,6 +865,10 @@ const ChatInterface = ({ user, onLogout, onLogin, onSignup }) => {
                     onMessageReceived={handleNewMessage}
                     onStreamingMessage={handleStreamingMessage}
                     conversationId={conversationId}
+                    onConversationIdChange={(id) => {
+                      setConversationId(id);
+                      api.utils.setCurrentConversationId(id);
+                    }}
                     activeIntent={activeIntent}
                     activeTopicLabel={activeTopic?.label || null}
                     onSendTranscript={handleVoiceTranscript}
