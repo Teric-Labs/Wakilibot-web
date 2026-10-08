@@ -150,7 +150,7 @@ const ChatInterface = ({ user, onLogout, onLogin, onSignup }) => {
 
   const handleStreamingMessage = useCallback(
     (chunk, isComplete, responseData) => {
-      if (isWaitingForResponse) setIsWaitingForResponse(false);
+      setIsWaitingForResponse(false);
       const fromVoiceTurn = voiceTurnRef.current === true;
 
       setMessages((prev) => {
@@ -292,7 +292,7 @@ const ChatInterface = ({ user, onLogout, onLogin, onSignup }) => {
           .catch(() => {});
       }
     },
-    [user?.user_id, isWaitingForResponse, getCurrentLanguageInfo]
+    [user?.user_id, getCurrentLanguageInfo]
   );
 
   const startNewConversation = useCallback(() => {
@@ -459,6 +459,8 @@ const ChatInterface = ({ user, onLogout, onLogin, onSignup }) => {
       setIsStreaming(false);
     } finally {
       setIsLoading(false);
+      setIsWaitingForResponse(false);
+      setIsStreaming(false);
       voiceTurnRef.current = false;
     }
   };

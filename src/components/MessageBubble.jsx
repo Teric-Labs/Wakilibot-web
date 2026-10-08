@@ -263,26 +263,31 @@ const MessageBubble = ({
                     Sources
                   </Typography>
                   {responseData.references.map((reference, index) => {
-                    const title = reference?.title || 'Source';
+                    const title = reference?.title || reference?.document_title || 'Source';
                     const href = reference?.url || reference?.link;
-                    if (!href) {
-                      return (
-                        <Typography key={`${title}-${index}`} sx={{ fontSize: '0.76rem', color: tokens.muted }}>
-                          {title}
-                        </Typography>
-                      );
-                    }
+                    const excerpt = reference?.excerpt;
                     return (
-                      <Typography key={`${title}-${index}`} sx={{ fontSize: '0.76rem', color: tokens.navy, lineHeight: 1.6 }}>
-                        <a
-                          href={href}
-                          target="_blank"
-                          rel="noreferrer"
-                          style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: '2px' }}
-                        >
-                          {title}
-                        </a>
-                      </Typography>
+                      <Box key={`${title}-${index}`} sx={{ display: 'grid', gap: 0.25 }}>
+                        <Typography sx={{ fontSize: '0.76rem', color: href ? tokens.navy : tokens.muted, lineHeight: 1.5, fontWeight: 500 }}>
+                          {href ? (
+                            <a
+                              href={href}
+                              target="_blank"
+                              rel="noreferrer"
+                              style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: '2px' }}
+                            >
+                              {title}
+                            </a>
+                          ) : (
+                            title
+                          )}
+                        </Typography>
+                        {excerpt && (
+                          <Typography sx={{ fontSize: '0.72rem', color: tokens.muted, fontStyle: 'italic', pl: 1, borderLeft: '2px solid #E5E7EB', lineHeight: 1.4 }}>
+                            "{excerpt}"
+                          </Typography>
+                        )}
+                      </Box>
                     );
                   })}
                 </Box>

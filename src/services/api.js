@@ -817,37 +817,21 @@ const api = {
         setConversationId(data.conversation_id);
       }
 
-      // Simulate character-by-character streaming like ChatGPT
+      // Stream word-by-word for a fast, responsive streaming feel without artificial multi-second lag
       if (onChunk && data.answer) {
         const fullText = data.answer;
+        const words = fullText.split(' ');
         let currentText = '';
 
-        for (let i = 0; i < fullText.length; i++) {
-          currentText += fullText[i];
-          const isComplete = i === fullText.length - 1;
+        for (let i = 0; i < words.length; i++) {
+          currentText += (i === 0 ? '' : ' ') + words[i];
+          const isComplete = i === words.length - 1;
           onChunk(currentText, isComplete, data);
 
-          // Variable delay for natural typing effect
-          let delay = 30; // Base delay
-
-          // Faster for spaces
-          if (fullText[i] === ' ') {
-            delay = 20;
+          if (!isComplete) {
+            // Rapid 16ms tick (approx 60fps) so a paragraph streams in under a second
+            await new Promise(resolve => setTimeout(resolve, 16));
           }
-          // Slower for punctuation
-          else if (/[.!?]/.test(fullText[i])) {
-            delay = 200;
-          }
-          // Medium for commas
-          else if (fullText[i] === ',') {
-            delay = 100;
-          }
-          // Faster for common characters
-          else if (/[aeiou]/.test(fullText[i].toLowerCase())) {
-            delay = 25;
-          }
-
-          await new Promise(resolve => setTimeout(resolve, delay));
         }
       }
 
@@ -1183,12 +1167,12 @@ const api = {
         url += `&search=${encodeURIComponent(search)}`;
       }
 
-      console.log('API: Fetching documents from:', url);
+      console.log('API: Fetching documents from backend:', url);
       const response = await axios.get(url, {
         timeout: 10000,
       });
 
-      console.log('API: Documents fetched successfully:', response.data);
+      console.log('API: Documents fetched successfully from backend:', response.data);
       return response.data;
     } catch (error) {
       console.error('API: Error fetching documents:', error);
@@ -1307,6 +1291,20 @@ const api = {
       return response.data;
     } catch (error) {
       console.error('API: Error fetching document statistics:', error);
+      throw error;
+    }
+  },
+
+  // Knowledge Base Re-index (Agent service)
+  reindexKnowledgeBase: async () => {
+    try {
+      console.log('API: Triggering knowledge base re-indexing...');
+      const response = await axios.post(`${API_BASE_URL}/knowledge/reindex`, {}, {
+        timeout: 15000,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('API: Error reindexing knowledge base:', error);
       throw error;
     }
   },

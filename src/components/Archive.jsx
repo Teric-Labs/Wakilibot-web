@@ -7,6 +7,7 @@ import {
   CircularProgress,
   Alert,
   Chip,
+  Button,
 } from '@mui/material';
 import {
   SearchFieldIcon,
@@ -225,22 +226,25 @@ const Archive = () => {
         sx={{ mb: 2 }}
       />
 
-      <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1, mb: 3 }}>
-        {CATEGORIES.map((cat) => (
-          <Chip
-            key={cat.id}
-            label={cat.label}
-            onClick={() => setSelectedCategory(cat.id)}
-            variant={selectedCategory === cat.id ? 'filled' : 'outlined'}
-            sx={{
-              backgroundColor: selectedCategory === cat.id ? tokens.navy : '#FFFFFF',
-              color: selectedCategory === cat.id ? '#fff' : tokens.navy,
-              borderColor: selectedCategory === cat.id ? tokens.navy : tokens.line,
-              fontWeight: 500,
-            }}
-          />
-        ))}
-      </Stack>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 1 }}>
+        <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
+          {CATEGORIES.map((cat) => (
+            <Chip
+              key={cat.id}
+              label={cat.label}
+              onClick={() => setSelectedCategory(cat.id)}
+              variant={selectedCategory === cat.id ? 'filled' : 'outlined'}
+              sx={{
+                backgroundColor: selectedCategory === cat.id ? tokens.navy : '#FFFFFF',
+                color: selectedCategory === cat.id ? '#fff' : tokens.navy,
+                borderColor: selectedCategory === cat.id ? tokens.navy : tokens.line,
+                fontWeight: 500,
+              }}
+            />
+          ))}
+        </Stack>
+
+      </Box>
 
       {loading && (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
