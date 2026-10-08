@@ -386,6 +386,41 @@ const ChatInterface = ({ user, onLogout, onLogin, onSignup }) => {
     }
   };
 
+  // Restore the last active conversation on mount (page refresh, or returning
+  // to the app in the same tab). sessionStorage already keeps the agent in
+  // sync via api.js's fallback on every send - but the component's own
+  // `messages`/`conversationId` state always started blank regardless, so a
+  // refresh looked like the bot had forgotten everything even though the
+  // agent-side thread (and its chat_history) was still intact. Mirrors the
+  // same history -> messages mapping ConversationHistory.jsx uses for an
+  // explicit resume, since the endpoint returns `history`, not `messages`.
+  useEffect(() => {
+    const existingId = api.utils.getCurrentConversationId();
+    if (!existingId) return;
+
+    let cancelled = false;
+    api
+      .getConversationHistory(existingId)
+      .then((historyResponse) => {
+        if (cancelled) return;
+        const history = historyResponse?.history || [];
+        if (history.length === 0) return;
+        handleSelectConversation({ id: existingId, messages: history });
+      })
+      .catch(() => {
+        // Agent restarted and lost the in-memory thread, or the network call
+        // failed - fall back to the fresh/welcome state already in place
+        // rather than leaving the UI stuck or throwing.
+      });
+    return () => {
+      cancelled = true;
+    };
+    // Intentionally mount-only: re-running this on every dependency change
+    // (e.g. a later conversationId update from sending a message) would
+    // re-fetch and clobber the conversation the user is actively in.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleExportConversation = () => {
     const dataStr = JSON.stringify(
       { messages, timestamp: new Date().toISOString(), user: user?.full_name },
