@@ -147,7 +147,7 @@ const ChatInterface = ({ user, onLogout, onLogin, onSignup }) => {
 
   const handleStreamingMessage = useCallback(
     (chunk, isComplete, responseData) => {
-      if (isWaitingForResponse) setIsWaitingForResponse(false);
+      setIsWaitingForResponse(false);
       const fromVoiceTurn = voiceTurnRef.current === true;
 
       setMessages((prev) => {
@@ -431,6 +431,8 @@ const ChatInterface = ({ user, onLogout, onLogin, onSignup }) => {
       setIsStreaming(false);
     } finally {
       setIsLoading(false);
+      setIsWaitingForResponse(false);
+      setIsStreaming(false);
       voiceTurnRef.current = false;
     }
   };
