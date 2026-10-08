@@ -180,23 +180,6 @@ const Archive = () => {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [reindexing, setReindexing] = useState(false);
-  const [reindexNotice, setReindexNotice] = useState(null);
-
-  const handleReindex = async () => {
-    try {
-      setReindexing(true);
-      setReindexNotice(null);
-      await api.reindexKnowledgeBase();
-      setReindexNotice('Knowledge base vector index refreshed successfully.');
-      setTimeout(() => setReindexNotice(null), 4000);
-    } catch (err) {
-      console.error(err);
-      setError('Could not re-index knowledge base. Check agent service status.');
-    } finally {
-      setReindexing(false);
-    }
-  };
 
   const loadDocuments = useCallback(async () => {
     try {
@@ -261,41 +244,7 @@ const Archive = () => {
           ))}
         </Stack>
 
-        <Button
-          variant="outlined"
-          size="small"
-          onClick={handleReindex}
-          disabled={reindexing}
-          sx={{
-            borderColor: tokens.line,
-            color: tokens.navy,
-            fontSize: '0.75rem',
-            textTransform: 'none',
-            borderRadius: '16px',
-            px: 1.5,
-            py: 0.4,
-            '&:hover': {
-              borderColor: tokens.navy,
-              backgroundColor: 'rgba(11, 31, 58, 0.04)',
-            },
-          }}
-        >
-          {reindexing ? (
-            <Stack direction="row" spacing={0.75} alignItems="center">
-              <CircularProgress size={12} color="inherit" />
-              <span>Re-indexing…</span>
-            </Stack>
-          ) : (
-            'Re-index Knowledge'
-          )}
-        </Button>
       </Box>
-
-      {reindexNotice && (
-        <Alert severity="success" sx={{ mb: 2 }}>
-          {reindexNotice}
-        </Alert>
-      )}
 
       {loading && (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
