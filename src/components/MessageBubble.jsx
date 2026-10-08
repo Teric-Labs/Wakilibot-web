@@ -264,7 +264,13 @@ const MessageBubble = ({
                   </Typography>
                   {responseData.references.map((reference, index) => {
                     const title = reference?.title || reference?.document_title || 'Source';
-                    const href = reference?.url || reference?.link;
+                    const rawHref = reference?.url || reference?.link;
+                    const backendBase = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
+                    const href = rawHref
+                      ? (rawHref.startsWith('http://') || rawHref.startsWith('https://')
+                          ? rawHref
+                          : `${backendBase.replace(/\/$/, '')}${rawHref.startsWith('/') ? '' : '/'}${rawHref}`)
+                      : null;
                     const excerpt = reference?.excerpt;
                     return (
                       <Box key={`${title}-${index}`} sx={{ display: 'grid', gap: 0.25 }}>
