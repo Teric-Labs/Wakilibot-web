@@ -289,7 +289,7 @@ const ChatInterface = ({ user, onLogout, onLogin, onSignup }) => {
           .catch(() => {});
       }
     },
-    [user?.user_id, isWaitingForResponse, intents, getCurrentLanguageInfo]
+    [user?.user_id, intents, getCurrentLanguageInfo]
   );
 
   const startNewConversation = useCallback(() => {
