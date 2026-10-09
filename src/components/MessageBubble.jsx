@@ -248,8 +248,8 @@ const MessageBubble = ({
             </Box>
           )}
 
-          {/* ─── Response metadata (complaint ID, references) - only for text replies ─── */}
-          {Boolean(responseData?.complaintId || (Array.isArray(responseData?.references) && responseData.references.length > 0)) && !isWelcome && !isUser && !isBotVoiceReply && (
+          {/* ─── Response metadata (complaint ID, references) ─── */}
+          {Boolean(responseData?.complaintId || (Array.isArray(responseData?.references) && responseData.references.length > 0)) && !isWelcome && !isUser && (
             <Box sx={{ mt: 1.5, pt: 1, borderTop: `1px solid #E5E7EB`, display: 'grid', gap: 1 }}>
               {responseData?.complaintId && (
                 <Typography sx={{ fontSize: '0.78rem', color: tokens.muted, fontWeight: 600 }}>
