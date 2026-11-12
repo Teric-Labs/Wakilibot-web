@@ -37,16 +37,28 @@ npm start
 
 Open `http://localhost:3000`.
 
-## API
+## Configuration
 
-Base URLs are configured in `src/services/api.js` via environment variables, each falling back to the hosted production service if unset:
+Copy `.env.example` to `.env` and set your service URLs:
 
-- `REACT_APP_AGENT_API_URL` — chat/voice endpoints (defaults to the hosted WakiliBot Agent API)
-- `REACT_APP_BACKEND_API_URL` — auth/complaints/documents endpoints (defaults to the hosted WakiliBot Core API)
+```bash
+cp .env.example .env
+npm start
+```
 
-Text-to-speech uses [tts.atekervoices.com](https://tts.atekervoices.com/docs) (`/v1/audio/speech/stream`), which streams raw PCM audio rather than returning a file URL — `MessageBubble.jsx` decodes and plays it via the Web Audio API instead of a plain `<audio>` element.
+| Variable | Required | Description |
+|---|---|---|
+| `REACT_APP_AGENT_URL` | No | WakiliBot Agent API base URL for chat/voice (default: hosted Render service) |
+| `REACT_APP_BACKEND_URL` | No | WakiliBot Core API base URL for auth/complaints/documents (default: hosted Render service) |
+| `REACT_APP_ASR_CONTROL_URL` | No | Real-time ASR control WebSocket (default: `ws://stt-control.atekervoices.com/control`) |
+| `REACT_APP_ASR_DATA_URL` | No | Real-time ASR data WebSocket (default: `ws://stt-data.atekervoices.com`) |
+| `REACT_APP_TTS_WS_URL` | No | Spark TTS streaming WebSocket — use `wss://` when the site is served over HTTPS to avoid mixed-content blocks (default: `wss://tts.atekervoices.com/v1/audio/speech/stream/ws`) |
 
-`docker-compose.yml` in the parent `phosai/` directory sets both URLs to the local `agent`/`backend` containers (`localhost:8001`/`localhost:8000`) for local development.
+All `REACT_APP_*` vars are baked into the bundle at build time by Create React App — they cannot be changed after the image is built.
+
+Text-to-speech streams raw PCM audio via the Web Audio API rather than returning a file URL — `MessageBubble.jsx` decodes and plays it directly instead of using a plain `<audio>` element.
+
+`docker-compose.yml` in the parent `phosai/` directory sets `REACT_APP_AGENT_URL` and `REACT_APP_BACKEND_URL` to the local `agent`/`backend` containers for local development.
 
 ## Testing
 
