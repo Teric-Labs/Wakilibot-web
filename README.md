@@ -58,9 +58,26 @@ CI=true npm test -- --watchAll=false
 
 ## Docker
 
+The image is published to GHCR on every merge to `main`. Pull and run it directly:
+
+```bash
+docker run -p 3000:3000 ghcr.io/teric-labs/wakilibot-web:latest
+```
+
+Pass service URLs to point it at your backend and agent:
+
+```bash
+docker run \
+  -e REACT_APP_AGENT_URL=https://your-agent.onrender.com \
+  -e REACT_APP_BACKEND_URL=https://your-backend.onrender.com \
+  -p 3000:3000 ghcr.io/teric-labs/wakilibot-web:latest
+```
+
+### Build locally
+
 ```bash
 docker build -t wakilibot-web .
-docker run --rm -p 3000:3000 wakilibot-web
+docker run -p 3000:3000 wakilibot-web
 ```
 
 This is a dev-server image (`npm start`), matching how the parent `phosai/docker-compose.yml` runs it — not a production static build.
