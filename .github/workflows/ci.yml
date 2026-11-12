@@ -1,11 +1,9 @@
-name: CI
+name: CI/CD
 
-# Path to prod: every push/PR runs the test suite and a production build.
-# Merging to main is gated on this passing; Render's own GitHub
-# integration auto-deploys main, so this workflow is the quality gate in
-# front of that, not a replacement for it. Enable "Require status checks
-# to pass" on main's branch protection rule (repo Settings -> Branches)
-# to make this a hard gate rather than just a visible check.
+# Every push/PR runs the test suite and a production build. On pushes to main
+# the Docker image is built and pushed to GHCR only after tests pass. PRs only
+# run tests — no image is pushed. Render's GitHub integration auto-deploys main;
+# this workflow is the quality gate plus image publisher.
 
 on:
   push:
@@ -16,6 +14,7 @@ on:
 
 jobs:
   test:
+    name: Test
     runs-on: ubuntu-latest
     env:
       CI: true
@@ -36,3 +35,58 @@ jobs:
 
       - name: Production build
         run: npm run build
+
+  build-and-push:
+    name: Build and Push Docker Image
+    needs: [test]
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # github.repository may contain uppercase letters (e.g. Teric-Labs/...)
+      # but Docker registry names must be fully lowercase.
+      - name: Set lowercase image name
+        run: echo "IMAGE_NAME=ghcr.io/${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
+
+      - name: Set up QEMU (for multi-arch builds)
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha
+            type=ref,event=branch
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache,mode=max
+
+      - name: Verify image pushed
+        run: |
+          echo "Image pushed successfully to ${{ env.IMAGE_NAME }}"
+          echo "Tags: ${{ steps.meta.outputs.tags }}"
