@@ -7,7 +7,6 @@ import {
   CircularProgress,
   Alert,
   Chip,
-  Button,
 } from '@mui/material';
 import {
   SearchFieldIcon,
