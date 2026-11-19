@@ -15,6 +15,23 @@ describe('MessageBubble', () => {
     expect(screen.queryByTestId('voice-note-bubble')).not.toBeInTheDocument();
   });
 
+  test('renders an attached image preview in the user bubble', () => {
+    render(
+      <MessageBubble
+        message="Please review the attached image."
+        isUser={true}
+        imagePreview="blob:attached-image"
+        attachmentName="receipt.jpg"
+        attachmentKind="image"
+      />
+    );
+
+    const img = screen.getByAltText('receipt.jpg');
+    expect(img).toBeInTheDocument();
+    expect(img).toHaveAttribute('src', 'blob:attached-image');
+    expect(screen.getByText('Please review the attached image.')).toBeInTheDocument();
+  });
+
   test('renders a plain bot text reply', () => {
     render(<MessageBubble message="How can I help you today?" isUser={false} />);
 

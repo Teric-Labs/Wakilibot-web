@@ -28,6 +28,9 @@ const MessageBubble = ({
   ttsError = false,
   language = 'en',
   onAutoPlayEnd = null,
+  imagePreview = null,
+  attachmentName = null,
+  attachmentKind = null,
 }) => {
   // Determine if we should show a voice note bubble:
   // - User voice messages with captured audio
@@ -87,8 +90,8 @@ const MessageBubble = ({
               ? {
                   backgroundColor: '#F4F4F5',
                   borderRadius: '18px',
-                  px: 2,
-                  py: 1.25,
+                  px: imagePreview ? 0.75 : 2,
+                  py: imagePreview ? 0.75 : 1.25,
                 }
               : {}),
           }}
@@ -175,8 +178,87 @@ const MessageBubble = ({
             </Box>
           )}
 
+          {/* ─── User image / file attachment preview (WhatsApp / ChatGPT style) ─── */}
+          {isUser && !showUserVoiceNote && Boolean(imagePreview || attachmentKind === 'file') && (
+            <Box sx={{ mb: message ? 1 : 0 }}>
+              {imagePreview ? (
+                <Box
+                  component="a"
+                  href={imagePreview}
+                  target="_blank"
+                  rel="noreferrer"
+                  sx={{
+                    display: 'block',
+                    borderRadius: '14px',
+                    overflow: 'hidden',
+                    border: '1px solid rgba(11,31,58,0.1)',
+                    backgroundColor: '#E8E8EA',
+                    maxWidth: { xs: '100%', sm: 280 },
+                    lineHeight: 0,
+                  }}
+                >
+                  <Box
+                    component="img"
+                    src={imagePreview}
+                    alt={attachmentName || 'Attached image'}
+                    sx={{
+                      display: 'block',
+                      width: '100%',
+                      maxHeight: 320,
+                      objectFit: 'cover',
+                    }}
+                  />
+                </Box>
+              ) : (
+                <Box
+                  sx={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    px: 1.25,
+                    py: 1,
+                    borderRadius: '12px',
+                    backgroundColor: 'rgba(11,31,58,0.06)',
+                    border: '1px solid rgba(11,31,58,0.1)',
+                    maxWidth: '100%',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: '8px',
+                      backgroundColor: tokens.navy,
+                      color: '#fff',
+                      display: 'grid',
+                      placeItems: 'center',
+                      fontSize: '0.68rem',
+                      fontWeight: 800,
+                      letterSpacing: '0.04em',
+                      flexShrink: 0,
+                    }}
+                  >
+                    PDF
+                  </Box>
+                  <Typography
+                    sx={{
+                      fontSize: '0.82rem',
+                      fontWeight: 600,
+                      color: tokens.ink,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {attachmentName || 'Attached file'}
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+          )}
+
           {/* ─── Plain text (user typed, welcome, streaming, error) ─── */}
-          {!showUserVoiceNote && !showBotVoiceNote && !isBotVoiceLoading && !isBotVoiceFailed && (
+          {!showUserVoiceNote && !showBotVoiceNote && !isBotVoiceLoading && !isBotVoiceFailed && Boolean(message) && (
             <Typography
               component="div"
               sx={{
@@ -236,6 +318,25 @@ const MessageBubble = ({
                 />
               )}
             </Typography>
+          )}
+
+          {/* Streaming cursor when bubble has image but empty text yet */}
+          {!showUserVoiceNote && !showBotVoiceNote && !isBotVoiceLoading && !isBotVoiceFailed && !message && isStreaming && (
+            <Box
+              component="span"
+              sx={{
+                display: 'inline-block',
+                width: 2,
+                height: '1em',
+                verticalAlign: 'text-bottom',
+                backgroundColor: tokens.navy,
+                animation: 'cursorBlink 1s step-end infinite',
+                '@keyframes cursorBlink': {
+                  '0%, 100%': { opacity: 1 },
+                  '50%': { opacity: 0 },
+                },
+              }}
+            />
           )}
 
           {/* ─── User typed message via voice badge (no audio bubble fallback) ─── */}

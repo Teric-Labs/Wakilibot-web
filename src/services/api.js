@@ -710,7 +710,15 @@ const api = {
   },
 
   // Send text message to the agent (Main conversation endpoint)
-  sendMessage: async (message, conversationId = null, language = null, onStream = null, intent = null) => {
+  sendMessage: async (
+    message,
+    conversationId = null,
+    language = null,
+    onStream = null,
+    intent = null,
+    attachmentContext = null,
+    attachmentMeta = null
+  ) => {
     console.log('🌍 [API DEBUG] sendMessage called with:');
     console.log('   - message:', message);
     console.log('   - conversationId:', conversationId);
@@ -740,6 +748,18 @@ const api = {
     if (intent && intent !== 'auto') {
       formData.append('intent', intent);
     }
+    if (attachmentContext && String(attachmentContext).trim()) {
+      formData.append('attachment_context', String(attachmentContext).trim().slice(0, 8000));
+    }
+    if (attachmentMeta?.attachment_url) {
+      formData.append('attachment_url', attachmentMeta.attachment_url);
+      if (attachmentMeta.attachment_name) {
+        formData.append('attachment_name', attachmentMeta.attachment_name);
+      }
+      if (attachmentMeta.attachment_kind) {
+        formData.append('attachment_kind', attachmentMeta.attachment_kind);
+      }
+    }
 
     try {
       const response = await fetch(`${API_BASE_URL}/agents/conversations`, {
@@ -767,8 +787,99 @@ const api = {
     }
   },
 
+  /** Extract text from a user PDF/image via agent OpenAI vision / PDF text (session only). */
+  extractAttachment: async (file, hint = null) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (hint) formData.append('hint', hint);
+    const response = await fetch(`${API_BASE_URL}/attachments/extract`, {
+      method: 'POST',
+      body: formData,
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const err = new Error(data.error || `Attachment extract failed (${response.status})`);
+      err.payload = data;
+      throw err;
+    }
+    return data;
+  },
+
+  /** Persist a chat attachment to R2/backend so history can reload the preview. */
+  uploadChatAttachment: async (file, { conversationId = null, userId = null } = {}) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (conversationId) formData.append('conversation_id', conversationId);
+    const resolvedUserId = userId || getAppropriateUserId();
+    if (resolvedUserId) formData.append('user_id', resolvedUserId);
+    const response = await fetch(`${BACKEND_API_URL}/chat-attachments`, {
+      method: 'POST',
+      body: formData,
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(data.detail || data.error || `Chat attachment upload failed (${response.status})`);
+    }
+    return data;
+  },
+
+  getEvidenceMeta: async (token) => {
+    const response = await fetch(`${BACKEND_API_URL}/evidence/${encodeURIComponent(token)}`);
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(data.detail || data.error || 'Invalid or expired evidence link');
+    }
+    return data;
+  },
+
+  uploadEvidenceByToken: async (token, file, { channel = 'web', extractedText = null } = {}) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('channel', channel);
+    if (extractedText) formData.append('extracted_text', String(extractedText).slice(0, 8000));
+    const response = await fetch(`${BACKEND_API_URL}/evidence/${encodeURIComponent(token)}`, {
+      method: 'POST',
+      body: formData,
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(data.detail || data.error || `Evidence upload failed (${response.status})`);
+    }
+    return data;
+  },
+
+  /** Persist a chat attachment to a filed complaint (token-gated). */
+  uploadComplaintEvidence: async (
+    complaintId,
+    file,
+    { evidenceToken = null, channel = 'web', extractedText = null } = {}
+  ) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('channel', channel);
+    if (evidenceToken) formData.append('evidence_token', evidenceToken);
+    if (extractedText) formData.append('extracted_text', String(extractedText).slice(0, 8000));
+    const response = await fetch(
+      `${BACKEND_API_URL}/complaints/${encodeURIComponent(complaintId)}/evidence`,
+      { method: 'POST', body: formData }
+    );
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(data.detail || data.error || `Evidence upload failed (${response.status})`);
+    }
+    return data;
+  },
+
   // Send streaming message (simulated streaming for now)
-  sendMessageStream: async (message, conversationId = null, language = null, onChunk = null, intent = null) => {
+  sendMessageStream: async (
+    message,
+    conversationId = null,
+    language = null,
+    onChunk = null,
+    intent = null,
+    attachmentContext = null,
+    attachmentMeta = null
+  ) => {
     console.log('🌍 [API DEBUG] sendMessageStream called with:');
     console.log('   - message:', message);
     console.log('   - conversationId:', conversationId);
@@ -796,6 +907,18 @@ const api = {
 
     if (intent && intent !== 'auto') {
       formData.append('intent', intent);
+    }
+    if (attachmentContext && String(attachmentContext).trim()) {
+      formData.append('attachment_context', String(attachmentContext).trim().slice(0, 8000));
+    }
+    if (attachmentMeta?.attachment_url) {
+      formData.append('attachment_url', attachmentMeta.attachment_url);
+      if (attachmentMeta.attachment_name) {
+        formData.append('attachment_name', attachmentMeta.attachment_name);
+      }
+      if (attachmentMeta.attachment_kind) {
+        formData.append('attachment_kind', attachmentMeta.attachment_kind);
+      }
     }
 
     try {

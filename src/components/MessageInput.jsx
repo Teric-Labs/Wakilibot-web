@@ -6,7 +6,9 @@ import {
   Box,
   CircularProgress,
   Typography,
+  Chip,
 } from '@mui/material';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
 import { MicIcon, SendIcon, VoiceModeIcon } from './icons';
 import VoiceRecorder from './VoiceRecorder';
 import api from '../services/api';
@@ -31,6 +33,8 @@ const MessageInput = ({
   activeTopicLabel = null,
   onSendTranscript,
   onStartVoiceMode,
+  onPendingEvidence,
+  onComplaintFiled,
   isLoading,
   setIsLoading,
   isStreaming,
@@ -41,8 +45,32 @@ const MessageInput = ({
   const { selectedLanguage, isInitialized } = useLanguage();
   const [message, setMessage] = useState('');
   const [voicePhase, setVoicePhase] = useState('idle');
+  const [attachmentName, setAttachmentName] = useState(null);
+  const [attachmentContext, setAttachmentContext] = useState(null);
+  const [attachmentPreviewUrl, setAttachmentPreviewUrl] = useState(null);
+  const [attachmentDurableUrl, setAttachmentDurableUrl] = useState(null);
+  const [attachmentIsImage, setAttachmentIsImage] = useState(false);
+  const [extracting, setExtracting] = useState(false);
   const inputRef = useRef(null);
   const recorderRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const pendingFileRef = useRef(null);
+  const previewUrlRef = useRef(null);
+  const durableUploadPromiseRef = useRef(null);
+
+  const clearAttachment = useCallback((revokePreview = true) => {
+    if (revokePreview && previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+    }
+    previewUrlRef.current = null;
+    durableUploadPromiseRef.current = null;
+    setAttachmentPreviewUrl(null);
+    setAttachmentDurableUrl(null);
+    setAttachmentIsImage(false);
+    setAttachmentName(null);
+    setAttachmentContext(null);
+    pendingFileRef.current = null;
+  }, []);
 
   // Focus input when component mounts
   useEffect(() => {
@@ -51,29 +79,167 @@ const MessageInput = ({
     }
   }, [voicePhase]);
 
+  useEffect(
+    () => () => {
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current);
+        previewUrlRef.current = null;
+      }
+    },
+    []
+  );
+
   const busy = isLoading || isStreaming;
+
+  const handleAttachFile = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file || busy || extracting) return;
+    clearAttachment(true);
+    const isImage = Boolean(file.type && file.type.startsWith('image/'));
+    let previewUrl = null;
+    if (isImage) {
+      previewUrl = URL.createObjectURL(file);
+      previewUrlRef.current = previewUrl;
+      setAttachmentPreviewUrl(previewUrl);
+      setAttachmentIsImage(true);
+    } else {
+      setAttachmentIsImage(false);
+    }
+    setExtracting(true);
+    setAttachmentName(file.name);
+    pendingFileRef.current = file;
+    // Persist to backend/R2 in parallel so history can reload the preview after refresh.
+    durableUploadPromiseRef.current = api
+      .uploadChatAttachment(file, { conversationId })
+      .then((uploaded) => {
+        if (pendingFileRef.current !== file) return null;
+        const durableUrl = uploaded?.file_url || null;
+        if (durableUrl) setAttachmentDurableUrl(durableUrl);
+        return uploaded;
+      })
+      .catch((err) => {
+        console.warn('[Chat] Durable attachment upload failed:', err);
+        return null;
+      });
+    try {
+      const result = await api.extractAttachment(file, message.trim() || null);
+      if (result?.extracted_text) {
+        setAttachmentContext(result.extracted_text);
+      } else {
+        clearAttachment(true);
+        const detail =
+          result?.note ||
+          result?.error ||
+          'Could not read that file. Try a clearer JPG/PNG or a text PDF (HEIC not supported).';
+        onMessageReceived?.({
+          text: detail,
+          isUser: false,
+          isError: true,
+          timestamp: new Date().toLocaleTimeString(),
+        });
+      }
+    } catch (err) {
+      clearAttachment(true);
+      onMessageReceived?.({
+        text:
+          err?.payload?.note ||
+          err?.payload?.error ||
+          err.message ||
+          'Attachment extract failed. Try JPG/PNG under 12MB, or a text PDF.',
+        isUser: false,
+        isError: true,
+        timestamp: new Date().toLocaleTimeString(),
+      });
+    } finally {
+      setExtracting(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
-    if (message.trim() === '' || busy) return;
+    if ((message.trim() === '' && !attachmentContext) || busy || extracting) return;
 
     // Wait for language context to be initialized
     if (!isInitialized) {
       return;
     }
 
-    const userMessage = message.trim();
+    const pendingName = attachmentName;
+    const pendingAttachment = attachmentContext;
+    const pendingFile = pendingFileRef.current;
+    const pendingPreviewUrl = previewUrlRef.current;
+    const pendingIsImage = attachmentIsImage;
+    let pendingDurableUrl = attachmentDurableUrl;
+    const uploadPromise = durableUploadPromiseRef.current;
+    const userMessage =
+      message.trim() ||
+      (pendingAttachment
+        ? pendingIsImage
+          ? 'Please review the attached image.'
+          : `Please review the attached document (${pendingName || 'file'}).`
+        : '');
     setMessage('');
+    // Keep the object URL alive for the chat bubble; only clear local composer state.
+    previewUrlRef.current = null;
+    durableUploadPromiseRef.current = null;
+    setAttachmentPreviewUrl(null);
+    setAttachmentDurableUrl(null);
+    setAttachmentIsImage(false);
+    setAttachmentContext(null);
+    setAttachmentName(null);
+    pendingFileRef.current = null;
+    if (pendingFile && pendingAttachment) {
+      onPendingEvidence?.({
+        file: pendingFile,
+        extractedText: pendingAttachment,
+        name: pendingName,
+      });
+    }
     setIsLoading(true);
     setIsStreaming(true);
     setIsWaitingForResponse(true);
 
-    // Add user message to chat
+    if (!pendingDurableUrl && uploadPromise) {
+      try {
+        const uploaded = await uploadPromise;
+        pendingDurableUrl = uploaded?.file_url || null;
+      } catch (_err) {
+        pendingDurableUrl = null;
+      }
+    }
+
+    const attachmentKind = pendingAttachment
+      ? pendingIsImage
+        ? 'image'
+        : 'file'
+      : null;
+    const previewForBubble =
+      (pendingIsImage && (pendingDurableUrl || pendingPreviewUrl)) || null;
+
+    // Add user message to chat (with image/file preview for WhatsApp-style display)
     onMessageReceived({
       text: userMessage,
       isUser: true,
-      timestamp: new Date().toLocaleTimeString()
+      timestamp: new Date().toLocaleTimeString(),
+      imagePreview: previewForBubble,
+      attachmentName: pendingName || null,
+      attachmentKind,
+      attachmentUrl: pendingDurableUrl || null,
     });
+
+    // Blob URLs are session-only; revoke once the durable URL is in the bubble.
+    if (pendingDurableUrl && pendingPreviewUrl) {
+      URL.revokeObjectURL(pendingPreviewUrl);
+    }
+
+    const attachmentMeta = pendingDurableUrl
+      ? {
+          attachment_url: pendingDurableUrl,
+          attachment_name: pendingName || null,
+          attachment_kind: attachmentKind,
+        }
+      : null;
 
     try {
       // Try streaming API first, fallback to regular API if it fails
@@ -81,14 +247,30 @@ const MessageInput = ({
       let streamingSucceeded = false;
 
       try {
-        response = await api.sendMessageStream(userMessage, conversationId, selectedLanguage, (chunk, isComplete, data) => {
-          if (onStreamingMessage) {
-            onStreamingMessage(chunk, isComplete, data);
-          }
-        }, activeIntent);
+        response = await api.sendMessageStream(
+          userMessage,
+          conversationId,
+          selectedLanguage,
+          (chunk, isComplete, data) => {
+            if (onStreamingMessage) {
+              onStreamingMessage(chunk, isComplete, data);
+            }
+          },
+          activeIntent,
+          pendingAttachment,
+          attachmentMeta
+        );
         streamingSucceeded = true;
       } catch (streamingError) {
-        response = await api.sendMessage(userMessage, conversationId, selectedLanguage, null, activeIntent);
+        response = await api.sendMessage(
+          userMessage,
+          conversationId,
+          selectedLanguage,
+          null,
+          activeIntent,
+          pendingAttachment,
+          attachmentMeta
+        );
         streamingSucceeded = false;
       }
 
@@ -98,6 +280,9 @@ const MessageInput = ({
         // mirror conversation_id into parent state so the next turn keeps the thread.
         if (response.conversation_id) {
           onConversationIdChange?.(response.conversation_id);
+        }
+        if (response.complaint_id && response.evidence_token) {
+          onComplaintFiled?.(response.complaint_id, response.evidence_token);
         }
         onMessageReceived({
           text: response.answer,
@@ -110,6 +295,8 @@ const MessageInput = ({
             responseTime: response.response_time,
             isCached: api.utils.isResponseCached(response),
             complaintId: response.complaint_id,
+            evidenceToken: response.evidence_token,
+            evidenceUploadUrl: response.evidence_upload_url,
             agent: response.agent,
             version: response.performance?.version,
             conversationId: response.conversation_id
@@ -149,7 +336,7 @@ const MessageInput = ({
     recorderRef.current?.startRecording();
   }, []);
 
-  const canSend = message.trim() !== '' && !busy;
+  const canSend = (message.trim() !== '' || Boolean(attachmentContext)) && !busy && !extracting;
 
   const placeholder = activeTopicLabel
     ? `Message about ${activeTopicLabel}…`
@@ -165,6 +352,101 @@ const MessageInput = ({
         activeIntent={activeIntent}
         disabled={busy}
       />
+
+      {attachmentName && voicePhase === 'idle' && (
+        <Box
+          sx={{
+            mb: 1,
+            display: 'flex',
+            gap: 1.25,
+            alignItems: 'flex-end',
+            flexWrap: 'wrap',
+          }}
+        >
+          {attachmentPreviewUrl ? (
+            <Box
+              sx={{
+                position: 'relative',
+                width: { xs: 112, sm: 140 },
+                borderRadius: 2,
+                overflow: 'hidden',
+                border: '1px solid rgba(11,31,58,0.12)',
+                boxShadow: '0 8px 20px -14px rgba(11,31,58,0.45)',
+                backgroundColor: '#F4F4F5',
+              }}
+            >
+              <Box
+                component="img"
+                src={attachmentPreviewUrl}
+                alt={attachmentName}
+                sx={{
+                  display: 'block',
+                  width: '100%',
+                  height: 140,
+                  objectFit: 'cover',
+                  opacity: extracting ? 0.7 : 1,
+                }}
+              />
+              {extracting && (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    inset: 0,
+                    display: 'grid',
+                    placeItems: 'center',
+                    backgroundColor: 'rgba(255,255,255,0.35)',
+                  }}
+                >
+                  <CircularProgress size={22} />
+                </Box>
+              )}
+              {!extracting && (
+                <IconButton
+                  size="small"
+                  aria-label="Remove attachment"
+                  onClick={() => clearAttachment(true)}
+                  sx={{
+                    position: 'absolute',
+                    top: 4,
+                    right: 4,
+                    width: 26,
+                    height: 26,
+                    backgroundColor: 'rgba(11,31,58,0.72)',
+                    color: '#fff',
+                    '&:hover': { backgroundColor: 'rgba(11,31,58,0.9)' },
+                  }}
+                >
+                  <Typography component="span" sx={{ fontSize: '0.95rem', lineHeight: 1 }}>
+                    ×
+                  </Typography>
+                </IconButton>
+              )}
+              <Typography
+                sx={{
+                  px: 1,
+                  py: 0.5,
+                  fontSize: '0.68rem',
+                  fontWeight: 600,
+                  color: tokens.ink,
+                  backgroundColor: 'rgba(255,255,255,0.92)',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {extracting ? `Reading ${attachmentName}…` : attachmentName}
+              </Typography>
+            </Box>
+          ) : (
+            <Chip
+              size="small"
+              label={extracting ? `Reading ${attachmentName}…` : `Attached: ${attachmentName}`}
+              onDelete={extracting ? undefined : () => clearAttachment(true)}
+              sx={{ fontWeight: 600 }}
+            />
+          )}
+        </Box>
+      )}
 
       {/* Normal text form — hidden while voice recording or review is active */}
       <Paper
@@ -187,6 +469,28 @@ const MessageInput = ({
           },
         }}
       >
+        <input
+          ref={fileInputRef}
+          type="file"
+          hidden
+          accept=".pdf,image/png,image/jpeg,image/jpg,image/webp,image/gif"
+          onChange={handleAttachFile}
+        />
+        <IconButton
+          onClick={() => fileInputRef.current?.click()}
+          aria-label="Attach a PDF or image"
+          disabled={busy || extracting}
+          sx={{
+            width: 38,
+            height: 38,
+            borderRadius: radii.circle,
+            color: busy || extracting ? 'rgba(11,31,58,0.2)' : tokens.navy,
+            border: '1px solid rgba(11,31,58,0.12)',
+          }}
+        >
+          {extracting ? <CircularProgress size={18} /> : <AttachFileIcon sx={{ fontSize: 19 }} />}
+        </IconButton>
+
         {/* Mic button — triggers VoiceRecorder to enter recording phase */}
         <IconButton
           onClick={handleMicClick}

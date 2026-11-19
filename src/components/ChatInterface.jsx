@@ -65,6 +65,8 @@ const ChatInterface = ({ user, onLogout, onLogin, onSignup }) => {
   // True for the turn that started from a recording, so the reply is read back out loud
   // without the user having to reach for the speaker button.
   const voiceTurnRef = useRef(false);
+  // Files attached in chat before a complaint ID exists — uploaded once filing succeeds.
+  const pendingEvidenceRef = useRef([]);
 
   // Load (and reload) the intent menu whenever the language changes so topic cards
   // always show in the user's chosen language. Falls back to the built-in translated copy
@@ -148,10 +150,52 @@ const ChatInterface = ({ user, onLogout, onLogin, onSignup }) => {
     ]);
   }, []);
 
+  const queuePendingEvidence = useCallback((item) => {
+    if (!item?.file) return;
+    pendingEvidenceRef.current = [...pendingEvidenceRef.current, item];
+  }, []);
+
+  const flushPendingEvidence = useCallback(
+    async (complaintId, evidenceToken) => {
+      const queue = pendingEvidenceRef.current;
+      if (!complaintId || !evidenceToken || !queue.length) return;
+      pendingEvidenceRef.current = [];
+      const results = [];
+      for (const item of queue) {
+        try {
+          const uploaded = await api.uploadComplaintEvidence(complaintId, item.file, {
+            evidenceToken,
+            channel: 'web_chat',
+            extractedText: item.extractedText,
+          });
+          results.push(uploaded);
+        } catch (err) {
+          console.warn('[Chat] Evidence upload failed:', err);
+          handleNewMessage({
+            text: `Could not save attached file "${item.name || 'file'}" to your case. Use the evidence link in the confirmation message to try again.`,
+            isUser: false,
+            isError: true,
+          });
+        }
+      }
+      if (results.length) {
+        handleNewMessage({
+          text: `Saved ${results.length} evidence file${results.length > 1 ? 's' : ''} to your case. CTDRU officers can review them with your complaint.`,
+          isUser: false,
+        });
+      }
+    },
+    [handleNewMessage]
+  );
+
   const handleStreamingMessage = useCallback(
     (chunk, isComplete, responseData) => {
       setIsWaitingForResponse(false);
       const fromVoiceTurn = voiceTurnRef.current === true;
+
+      if (isComplete && responseData?.complaint_id && responseData?.evidence_token) {
+        flushPendingEvidence(responseData.complaint_id, responseData.evidence_token);
+      }
 
       setMessages((prev) => {
         const last = prev[prev.length - 1];
@@ -161,6 +205,8 @@ const ChatInterface = ({ user, onLogout, onLogin, onSignup }) => {
               taskStatus: responseData?.task_status,
               responseTime: responseData?.response_time,
               complaintId: responseData?.complaint_id,
+              evidenceToken: responseData?.evidence_token,
+              evidenceUploadUrl: responseData?.evidence_upload_url,
               conversationId: responseData?.conversation_id,
             }
           : null;
@@ -292,11 +338,12 @@ const ChatInterface = ({ user, onLogout, onLogin, onSignup }) => {
           .catch(() => {});
       }
     },
-    [user?.user_id, getCurrentLanguageInfo]
+    [user?.user_id, getCurrentLanguageInfo, flushPendingEvidence]
   );
 
   const startNewConversation = useCallback(() => {
     api.utils.startNewConversation();
+    pendingEvidenceRef.current = [];
     setMessages([
       {
         id: 'welcome',
@@ -373,15 +420,31 @@ const ChatInterface = ({ user, onLogout, onLogin, onSignup }) => {
     }
     if (conversationData?.messages) {
       setCurrentView('chat');
-      const formatted = conversationData.messages.map((msg) => ({
-        id: msg.id || `msg_${Date.now()}_${Math.random()}`,
-        text: msg.query || msg.message || msg.text || '',
-        isUser: msg.role === 'user' || msg.type === 'user',
-        // Stored as unix seconds by the agent, so it goes through the same normaliser the
-        // History panel uses before it is shown as a clock time.
-        timestamp: new Date(api.utils.toMillis(msg.timestamp) ?? Date.now()).toLocaleTimeString(),
-        responseData: msg.response_data || null,
-      }));
+      const formatted = conversationData.messages.map((msg) => {
+        const attachmentUrl = msg.attachment_url || msg.attachmentUrl || null;
+        const attachmentName = msg.attachment_name || msg.attachmentName || null;
+        const attachmentKind =
+          msg.attachment_kind ||
+          msg.attachmentKind ||
+          (attachmentUrl
+            ? /\.(png|jpe?g|webp|gif)(\?|$)/i.test(attachmentUrl)
+              ? 'image'
+              : 'file'
+            : null);
+        return {
+          id: msg.id || `msg_${Date.now()}_${Math.random()}`,
+          text: msg.query || msg.message || msg.text || '',
+          isUser: msg.role === 'user' || msg.type === 'user',
+          // Stored as unix seconds by the agent, so it goes through the same normaliser the
+          // History panel uses before it is shown as a clock time.
+          timestamp: new Date(api.utils.toMillis(msg.timestamp) ?? Date.now()).toLocaleTimeString(),
+          responseData: msg.response_data || null,
+          imagePreview: attachmentKind === 'image' ? attachmentUrl : null,
+          attachmentName,
+          attachmentKind,
+          attachmentUrl,
+        };
+      });
       setMessages(formatted);
     }
   };
@@ -813,6 +876,9 @@ const ChatInterface = ({ user, onLogout, onLogin, onSignup }) => {
                         ttsError={message.ttsError}
                         language={getCurrentLanguageInfo()?.code || 'en'}
                         onAutoPlayEnd={handleVoiceReplyEnded}
+                        imagePreview={message.imagePreview}
+                        attachmentName={message.attachmentName}
+                        attachmentKind={message.attachmentKind}
                       />
                     ))}
 
@@ -875,6 +941,8 @@ const ChatInterface = ({ user, onLogout, onLogin, onSignup }) => {
                     activeTopicLabel={activeTopic?.label || null}
                     onSendTranscript={handleVoiceTranscript}
                     onStartVoiceMode={() => setVoiceModeActive(true)}
+                    onPendingEvidence={queuePendingEvidence}
+                    onComplaintFiled={flushPendingEvidence}
                     isLoading={isLoading}
                     setIsLoading={setIsLoading}
                     isStreaming={isStreaming}

@@ -8,15 +8,34 @@ import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
 import HowItWorksPage from './components/HowItWorksPage';
 import AboutUsPage from './components/AboutUsPage';
+import EvidenceUploadPage from './components/EvidenceUploadPage';
 import { store, persistor } from './store';
 import baseTheme from './styles/theme';
 import api from './services/api';
 
+const readEvidenceTokenFromLocation = () => {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const fromQuery = params.get('evidence_token');
+    if (fromQuery) return fromQuery;
+    const pathMatch = window.location.pathname.match(/\/evidence\/([^/]+)/);
+    return pathMatch ? decodeURIComponent(pathMatch[1]) : null;
+  } catch {
+    return null;
+  }
+};
+
 const App = () => {
   const [currentPage, setCurrentPage] = useState('landing');
   const [user, setUser] = useState(null);
+  const [evidenceToken, setEvidenceToken] = useState(() => readEvidenceTokenFromLocation());
 
   useEffect(() => {
+    if (evidenceToken) {
+      setCurrentPage('evidence');
+      return;
+    }
+
     // Perform background health check on agent and main backend services when web app loads
     api.performBackgroundHealthCheck().catch((err) => {
       console.warn('[App] Background health check error:', err);
@@ -39,7 +58,7 @@ const App = () => {
     } catch {
       /* ignore */
     }
-  }, []);
+  }, [evidenceToken]);
 
   const theme = useMemo(() => baseTheme, []);
 
@@ -83,11 +102,22 @@ const App = () => {
   const handleShowHowItWorks = () => setCurrentPage('how-it-works');
   const handleShowAboutUs = () => setCurrentPage('about-us');
 
+  const leaveEvidencePage = () => {
+    setEvidenceToken(null);
+    const url = new URL(window.location.href);
+    url.searchParams.delete('evidence_token');
+    window.history.replaceState({}, '', url.pathname === '/evidence' ? '/' : url.pathname + url.search);
+    setCurrentPage('landing');
+  };
+
   return (
     <Provider store={store}>
       <PersistGate loading={<div>Loading...</div>} persistor={persistor}>
         <ThemeProvider theme={theme}>
           <CssBaseline />
+          {currentPage === 'evidence' && evidenceToken && (
+            <EvidenceUploadPage token={evidenceToken} onDone={leaveEvidencePage} />
+          )}
           {currentPage === 'landing' && (
             <LandingPage
               onHome={handleHome}
