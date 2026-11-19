@@ -1,9 +1,8 @@
 name: CI/CD
 
 # Every push/PR runs the test suite and a production build. On pushes to main
-# the Docker image is built and pushed to GHCR only after tests pass. PRs only
-# run tests — no image is pushed. Render's GitHub integration auto-deploys main;
-# this workflow is the quality gate plus image publisher.
+# the Docker image is built and pushed to GHCR only after tests pass, then
+# Render is triggered via deploy hook. PRs only run tests — no image is pushed.
 
 on:
   push:
@@ -90,3 +89,14 @@ jobs:
         run: |
           echo "Image pushed successfully to ${{ env.IMAGE_NAME }}"
           echo "Tags: ${{ steps.meta.outputs.tags }}"
+
+  deploy:
+    name: Deploy to Render
+    needs: [build-and-push]
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render deploy hook
+        run: |
+          curl -f -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+          echo "Deploy triggered → https://wakilibot-web.onrender.com"
