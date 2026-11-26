@@ -290,9 +290,13 @@ export const speakStreaming = (text, options = {}) => {
  */
 export const synthesizeToFile = async (text, language = 'en', agentUrl) => {
   const API_BASE = agentUrl || process.env.REACT_APP_AGENT_URL || 'https://wakilibot-agent-0wm0.onrender.com';
+  const speechText = String(text || '').trim();
+  if (!speechText) {
+    throw new Error('Nothing to read aloud');
+  }
   const voice = resolveVoice(language);
   const formData = new FormData();
-  formData.append('text', text.slice(0, 5000));
+  formData.append('text', speechText.slice(0, 5000));
   formData.append('language', language);
   formData.append('voice', voice);
 

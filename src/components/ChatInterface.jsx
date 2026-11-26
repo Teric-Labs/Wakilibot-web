@@ -290,19 +290,24 @@ const ChatInterface = ({ user, onLogout, onLogin, onSignup }) => {
       // Generate TTS audio for bot replies to voice queries (WhatsApp-style voice note)
       if (isComplete && fromVoiceTurn && chunk && chunk.trim()) {
         const lang = getCurrentLanguageInfo()?.code || 'en';
-        
+        const speechText = api.utils.cleanTextForTTS(
+          api.utils.prepareTTSContent(chunk, responseData)
+        );
+
         const fetchAudio = async () => {
+          if (!speechText) return null;
           try {
-            return await synthesizeToFile(chunk, lang);
+            return await synthesizeToFile(speechText, lang);
           } catch (err) {
             console.warn('[TTS] synthesizeToFile failed, attempting api.synthesizeSpeech proxy:', err);
-            const fallbackResult = await api.synthesizeSpeech(chunk, lang);
+            const fallbackResult = await api.synthesizeSpeech(speechText, lang);
             return fallbackResult.audioUrl;
           }
         };
 
         fetchAudio()
           .then((replyAudioUrl) => {
+            if (!replyAudioUrl) return;
             setMessages((prev) => {
               const updated = [...prev];
               // Find the last bot message and attach the audio URL
@@ -973,6 +978,7 @@ const ChatInterface = ({ user, onLogout, onLogin, onSignup }) => {
             title={t('archive', 'title')}
             subtitle={t('sidebar', 'documents')}
             onBack={goChat}
+            maxWidth={1040}
           >
             <Archive />
           </StandardPanel>

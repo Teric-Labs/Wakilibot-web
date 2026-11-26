@@ -85,6 +85,7 @@ const VoiceNoteBubble = ({ audioUrl, duration = 0, isUser = false, autoplay = fa
     audio.onerror = () => {
       setReady(false);
       setIsPlaying(false);
+      onAutoPlayEnd?.();
     };
 
     return () => {
@@ -120,7 +121,9 @@ const VoiceNoteBubble = ({ audioUrl, duration = 0, isUser = false, autoplay = fa
       setIsPlaying(true);
       rafRef.current = requestAnimationFrame(trackProgress);
     }).catch(() => {
+      // Autoplay blocked or play failed — release voice-mode "Speaking…" so listening can resume.
       setIsPlaying(false);
+      onAutoPlayEnd?.();
     });
   };
 
