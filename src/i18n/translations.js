@@ -14,6 +14,7 @@ const translations = {
       askWakili: 'Ask Wakili',
       history: 'History',
       documents: 'Documents',
+      guide: 'User guide',
       help: 'Help',
       settings: 'Settings',
       account: 'Account',
@@ -80,6 +81,11 @@ const translations = {
     help: {
       title: 'Help & Support',
       subtitle: 'How can we assist you?',
+    },
+    // Channel usage guide
+    guide: {
+      title: 'User guide',
+      subtitle: 'Web, SMS, USSD, and IVR',
     },
     // Account panel
     account: {

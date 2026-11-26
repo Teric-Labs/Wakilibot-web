@@ -19,6 +19,7 @@ import {
   HistoryIcon,
   DocumentsIcon,
   SupportIcon,
+  GuideIcon,
   SettingsIcon,
   AccountIcon,
   NewEnquiryIcon,
@@ -96,6 +97,7 @@ const Sidebar = ({
     // GET /intents and rendered by the topic menu, so it must not have a second form.
     { id: 'conversations', label: t('sidebar', 'history'), icon: <HistoryIcon /> },
     { id: 'archive', label: t('sidebar', 'documents'), icon: <DocumentsIcon /> },
+    { id: 'guide', label: t('sidebar', 'guide'), icon: <GuideIcon /> },
     { id: 'help', label: t('sidebar', 'help'), icon: <SupportIcon /> },
     { id: 'settings', label: t('sidebar', 'settings'), icon: <SettingsIcon /> },
     { id: 'account', label: t('sidebar', 'account'), icon: <AccountIcon /> },

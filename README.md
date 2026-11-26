@@ -50,9 +50,9 @@ npm start
 |---|---|---|
 | `REACT_APP_AGENT_URL` | No | WakiliBot Agent API base URL for chat/voice (default: hosted Render service) |
 | `REACT_APP_BACKEND_URL` | No | WakiliBot Core API base URL for auth/complaints/documents (default: hosted Render service) |
-| `REACT_APP_ASR_CONTROL_URL` | No | Real-time ASR control WebSocket (default: `ws://stt-control.atekervoices.com/control`) |
-| `REACT_APP_ASR_DATA_URL` | No | Real-time ASR data WebSocket (default: `ws://stt-data.atekervoices.com`) |
-| `REACT_APP_TTS_WS_URL` | No | Spark TTS streaming WebSocket — use `wss://` when the site is served over HTTPS to avoid mixed-content blocks (default: `wss://tts.atekervoices.com/v1/audio/speech/stream/ws`) |
+| `REACT_APP_ASR_CONTROL_URL` | No | Optional realtime ASR (unused by default; HTTP `/transcribe` → Voicebox) |
+| `REACT_APP_ASR_DATA_URL` | No | Optional realtime ASR data socket (unused by default) |
+| `REACT_APP_TTS_WS_URL` | No | Spark TTS WebSocket (default: `wss://tts-spark.atekervoices.com/v1/audio/speech/stream/ws`) |
 
 All `REACT_APP_*` vars are baked into the bundle at build time by Create React App — they cannot be changed after the image is built.
 

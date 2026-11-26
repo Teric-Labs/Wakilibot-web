@@ -15,6 +15,7 @@ import { TopicHeader, TopicPicker, TopicBrief } from './IntentSelector';
 import Sidebar from './Sidebar';
 import Archive from './Archive';
 import Help from './Help';
+import UserGuide from './UserGuide';
 import ConversationHistory from './ConversationHistory';
 import TypingAnimation from './TypingAnimation';
 import LanguageSettings from './LanguageSettings';
@@ -981,6 +982,17 @@ const ChatInterface = ({ user, onLogout, onLogin, onSignup }) => {
             maxWidth={1040}
           >
             <Archive />
+          </StandardPanel>
+        )}
+
+        {currentView === 'guide' && (
+          <StandardPanel
+            title={t('guide', 'title') || 'User guide'}
+            subtitle={t('guide', 'subtitle') || 'Web, SMS, USSD, and IVR'}
+            onBack={goChat}
+            maxWidth={720}
+          >
+            <UserGuide />
           </StandardPanel>
         )}
 

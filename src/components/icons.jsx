@@ -45,6 +45,7 @@ import {
   Trash2,
   AudioLines,
   PhoneOff,
+  BookOpen,
 } from 'lucide-react';
 
 /**
@@ -77,6 +78,7 @@ export const AskWakiliIcon = makeIcon(MessageSquareText);
 export const HistoryIcon = makeIcon(ScrollText);
 export const DocumentsIcon = makeIcon(LibraryBig);
 export const SupportIcon = makeIcon(LifeBuoy);
+export const GuideIcon = makeIcon(BookOpen);
 export const SettingsIcon = makeIcon(SlidersHorizontal);
 export const AccountIcon = makeIcon(UserRound);
 export const NewEnquiryIcon = makeIcon(SquarePen);

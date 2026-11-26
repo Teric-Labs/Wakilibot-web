@@ -1,11 +1,13 @@
 /**
- * Real-time ASR (Automatic Speech Recognition) via Ateker WebSocket streaming.
+ * Real-time ASR via Ateker WebSocket streaming (legacy dual-socket client).
  *
- * Architecture (dual socket):
- *   - Control socket: ws://stt-control.atekervoices.com/control
- *       Manages engine parameters (language, silence timeout, VAD sensitivity).
- *   - Data socket: ws://stt-data.atekervoices.com
- *       Streams raw PCM audio frames and receives transcription events.
+ * Preferred production path is agent HTTP POST /transcribe → Voicebox
+ * (https://stt-voicebox.atekervoices.com/docs). This module is unused by the
+ * current UI; Voicebox realtime is at wss://stt-voicebox.atekervoices.com/v1/realtime.
+ *
+ * Architecture (legacy dual socket):
+ *   - Control socket: manages engine parameters (language, silence, VAD).
+ *   - Data socket: streams raw PCM and receives transcription events.
  *
  * Audio format sent: Int16LE mono PCM at the AudioContext sample rate (target 16 kHz).
  * Packet structure: [4-byte metadata length LE] + [metadata JSON] + [PCM bytes]
@@ -18,10 +20,10 @@
  */
 
 const CONTROL_WS_URL =
-  process.env.REACT_APP_ASR_CONTROL_URL || 'ws://stt-control.atekervoices.com/control';
+  process.env.REACT_APP_ASR_CONTROL_URL || 'wss://stt-voicebox.atekervoices.com/v1/realtime';
 
 const DATA_WS_URL =
-  process.env.REACT_APP_ASR_DATA_URL || 'ws://stt-data.atekervoices.com';
+  process.env.REACT_APP_ASR_DATA_URL || 'wss://stt-voicebox.atekervoices.com/v1/realtime';
 
 // Language code mapping from our app codes to ASR engine codes
 const ASR_LANGUAGE_MAP = {
