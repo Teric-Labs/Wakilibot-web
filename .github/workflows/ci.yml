@@ -35,6 +35,66 @@ jobs:
       - name: Production build
         run: npm run build
 
+  # --- Set Concourse Pipeline Job ---
+  # Keeps the Concourse pipeline definition (owned by Teric-Labs/concouse-ci)
+  # in sync after every green push to main. Requires a PAT with repo access
+  # to concouse-ci, stored as the CONCOURSE_TOKEN secret.
+  set-pipeline:
+    name: Set Concourse Pipeline
+    needs: [test]
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the Concourse pipeline definitions
+        uses: actions/checkout@v4
+        with:
+          repository: Teric-Labs/concouse-ci
+          ref: main
+          path: concourse-ci
+          token: ${{ secrets.CONCOURSE_TOKEN }}
+
+      - name: Install fly-concourse
+        run: |
+          set -euo pipefail
+          curl -fsSL -o fly-concourse \
+            "http://13.63.167.40:8080/api/v1/cli?arch=amd64&platform=linux"
+          chmod +x fly-concourse
+          sudo mv fly-concourse /usr/local/bin/fly-concourse
+          fly-concourse --version
+
+      - name: Log in to Concourse
+        run: |
+          set -euo pipefail
+          fly-concourse -t main login \
+            -c http://13.63.167.40:8080 \
+            -u admin \
+            -p change_this_password
+
+      - name: Set and unpause the pipeline
+        env:
+          CONCOURSE_USERNAME: ${{ secrets.CONCOURSE_USERNAME || 'EricPeter' }}
+          CONCOURSE_TOKEN: ${{ secrets.CONCOURSE_TOKEN }}
+          WEBHOOK_TOKEN: ${{ secrets.WEBHOOK_TOKEN || 'concouse-ci-webhook-token' }}
+        run: |
+          set -euo pipefail
+          if [ -z "$CONCOURSE_TOKEN" ]; then
+            echo "::error::CONCOURSE_TOKEN is not set; cannot check out concouse-ci or authenticate to GHCR."
+            exit 1
+          fi
+          cat > concourse-ci/vars/secrets.yml <<EOF
+          registry-username: ${CONCOURSE_USERNAME}
+          registry-password: ${CONCOURSE_TOKEN}
+          git-username: ${CONCOURSE_USERNAME}
+          git-password: ${CONCOURSE_TOKEN}
+          webhook-token: ${WEBHOOK_TOKEN}
+          EOF
+          fly-concourse -t main set-pipeline \
+            -p wakilibot-web \
+            -c concourse-ci/pipelines/wakilibot-web.yml \
+            -l concourse-ci/vars/secrets.yml \
+            --non-interactive
+          fly-concourse -t main unpause-pipeline -p wakilibot-web
+
   build-and-push:
     name: Build and Push Docker Image
     needs: [test]
