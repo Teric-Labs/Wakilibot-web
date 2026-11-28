@@ -63,12 +63,19 @@ jobs:
           fly-concourse --version
 
       - name: Log in to Concourse
+        env:
+          CONCOURSE_USERNAME: ${{ secrets.CONCOURSE_USERNAME || 'admin' }}
+          CONCOURSE_PASSWORD: ${{ secrets.CONCOURSE_PASSWORD }}
         run: |
           set -euo pipefail
+          if [ -z "$CONCOURSE_PASSWORD" ]; then
+            echo "::error::CONCOURSE_PASSWORD is not set; add it under Settings → Secrets → Actions."
+            exit 1
+          fi
           fly-concourse -t main login \
             -c http://13.63.167.40:8080 \
-            -u admin \
-            -p change_this_password
+            -u "$CONCOURSE_USERNAME" \
+            -p "$CONCOURSE_PASSWORD"
 
       - name: Set and unpause the pipeline
         env:
